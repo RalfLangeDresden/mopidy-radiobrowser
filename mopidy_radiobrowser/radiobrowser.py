@@ -222,30 +222,59 @@ class RadioBrowser(object):
                 grab_item(item)
         return results
 
-    def categories(self):
-        results = [];
-        category = [];
+    def categories(self, category=''):
+        # results = list();  # <type 'list'>
+        # category = {
+        #     'URL': self._base_uri % 'countries', # http://www.radio-browser.info/webservice/xml/
+        #     'element': 'outline',
+        #     'key: 'countries',
+        #     'text': 'Countries',
+        #     'type': 'link'
+        # };
 
-        category['text'] = 'Countries';
-        category['key'] = 'countries';
-        results.append(category);
+        # category['text'] = 'Countries';
+        # category['key'] = 'countries';
+        # results.append(category);
 
-        category['text'] = 'Languages';
-        category['key'] = 'languages';
-        results.append(category);
+        # category['text'] = 'Languages';
+        # category['key'] = 'languages';
+        # results.append(category);
 
-        category['text'] = 'Tags';
-        category['key'] = 'tags';
-        results.append(category);
+        # category['text'] = 'Tags';
+        # category['key'] = 'tags';
+        # results.append(category);
 
-        category['text'] = 'Top 50 clicked';
-        category['key'] = 'clicks';
-        results.append(category);
+        # category['text'] = 'Top 50 clicked';
+        # category['key'] = 'clicks';
+        # results.append(category);
 
-        category['text'] = 'Top 50 voted';
-        category['key'] = 'votes';
-        results.append(category);
+        # category['text'] = 'Top 50 voted';
+        # category['key'] = 'votes';
+        # results.append(category);
 
+        if category == 'location':
+            args = '&id=r0'  # Annoying special case
+        elif category == 'language':
+            args = '&c=lang'
+            return []  # TuneIn's API is a mess here, cba
+        else:
+            args = '&c=' + category
+
+        # Take a copy so we don't modify the cached data
+        results = list(self._radiobrowser('Browse.ashx', args))
+        if category in ('podcast', 'local'):
+            # Flatten the results!
+            results = self._filter_results(self._flatten(results))
+        elif category == '':
+            trending = {'text': 'Trending',
+                        'key': 'trending',
+                        'type': 'link',
+                        'URL': self._base_uri % 'Browse.ashx?c=trending'}
+            # Filter out the language root category for now
+            results = [x for x in results if x['key'] != 'language']
+            results.append(trending)
+        else:
+            results = self._filter_results(results)
         return results
 
     def locations(self, location):
