@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 
 import re
-
-from setuptools import find_packages, setup
+from setuptools import setup, find_packages
 
 
 def get_version(filename):
@@ -14,11 +13,11 @@ def get_version(filename):
 setup(
     name='Mopidy-RadioBrowser',
     version=get_version('mopidy_radiobrowser/__init__.py'),
-    url='https://github.com/kingosticks/mopidy-radiobrowser',
+    url='https://github.com/RalfLangeDresden/mopidy-radiobrowser',
     license='Apache License, Version 2.0',
-    author='Nick Steel',
-    author_email='kingosticks@gmail.com',
-    description='Mopidy extension for playing music from RadioBrowser.',
+    author='Ralf Lange',
+    author_email='ralf.lange@longsoft.de',
+    description='Mopidy extension for selecting and playing internet radio stations from https://www.radio-browser.info.',
     long_description=open('README.rst').read(),
     packages=find_packages(exclude=['tests', 'tests.*']),
     zip_safe=False,

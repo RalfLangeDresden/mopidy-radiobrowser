@@ -23,5 +23,5 @@ class Extension(ext.Extension):
         return schema
 
     def setup(self, registry):
-        from .actor import RadioBrowserBackend
+        from .backend import RadioBrowserBackend
         registry.add('backend', RadioBrowserBackend)
