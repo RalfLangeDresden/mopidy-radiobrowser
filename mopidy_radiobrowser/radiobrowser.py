@@ -33,13 +33,19 @@ class cache(object):
     # TODO: merge this to util library (copied from mopidy-spotify)
 
     def __init__(self, ctl=0, ttl=3600):
+        logger.debug('RadioBrowser: Start radiobrowser.cache.__init__')
+
         self.cache = {}
         self.ctl = ctl
         self.ttl = ttl
         self._call_count = 0
 
     def __call__(self, func):
+        logger.debug('RadioBrowser: Start radiobrowser.cache.__call__')
+
         def _memoized(*args):
+            logger.debug('RadioBrowser: Start radiobrowser.cache.__call__._memoized')
+
             now = time.time()
             try:
                 value, last_update = self.cache[args]
@@ -61,6 +67,8 @@ class cache(object):
                 return func(*args)
 
         def clear():
+            logger.debug('RadioBrowser: Start radiobrowser.cache.__call__.clear')
+
             self.cache.clear()
 
         _memoized.clear = clear
@@ -68,6 +76,8 @@ class cache(object):
 
 
 def parse_m3u(data):
+    logger.debug('RadioBrowser: Start radiobrowser.parse_m3u')
+
     # Copied from mopidy.audio.playlists
     # Mopidy version expects a header but it's not always present
     for line in data.readlines():
@@ -76,6 +86,8 @@ def parse_m3u(data):
 
 
 def parse_pls(data):
+    logger.debug('RadioBrowser: Start radiobrowser.parse_pls')
+
     # Copied from mopidy.audio.playlists
     try:
         cp = configparser.RawConfigParser()
@@ -99,10 +111,14 @@ def parse_pls(data):
 
 
 def fix_asf_uri(uri):
+    logger.debug('RadioBrowser: Start radiobrowser.fix_asf_uri')
+
     return re.sub(r'http://(.+\?mswmext=\.asf)', r'mms://\1', uri, flags=re.I)
 
 
 def parse_old_asx(data):
+    logger.debug('RadioBrowser: Start radiobrowser.parse_old_asx')
+
     try:
         cp = configparser.RawConfigParser()
         cp.readfp(data)
@@ -118,6 +134,8 @@ def parse_old_asx(data):
 
 
 def parse_new_asx(data):
+    logger.debug('RadioBrowser: Start radiobrowser.parse_new_asx')
+
     # Copied from mopidy.audio.playlists
     try:
         for event, element in elementtree.iterparse(data):
@@ -133,6 +151,8 @@ def parse_new_asx(data):
 
 
 def parse_asx(data):
+    logger.debug('RadioBrowser: Start radiobrowser.parse_asx')
+
     if 'asx' in data.getvalue()[0:50].lower():
         return parse_new_asx(data)
     else:
@@ -156,6 +176,8 @@ def parse_asx(data):
 
 
 def find_playlist_parser(extension, content_type):
+    logger.debug('RadioBrowser: Start radiobrowser.find_playlist_parser')
+
     extension_map = {'.asx': parse_asx,
                      '.wax': parse_asx,
                      '.m3u': parse_m3u,
@@ -174,20 +196,26 @@ def find_playlist_parser(extension, content_type):
 
 
 class RadioBrowser(object):
-    """Wrapper for the RadioBrowser API."""
+    # Wrapper for the RadioBrowser API.
 
     def __init__(self, timeout, session=None):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.__init__')
+
         self._base_uri = 'http://opml.radiotime.com/%s'
         self._session = session or requests.Session()
         self._timeout = timeout / 1000.0
         self._stations = {}
 
     def reload(self):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.reload')
+
         self._stations.clear()
         self._radiobrowser.clear()
         self._get_playlist.clear()
 
     def _flatten(self, data):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._flatten')
+
         results = []
         for item in data:
             if 'children' in item:
@@ -197,6 +225,8 @@ class RadioBrowser(object):
         return results
 
     def _filter_results(self, data, section_name=None, map_func=None):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._filter_results')
+
         results = []
 
         def grab_item(item):
@@ -223,35 +253,56 @@ class RadioBrowser(object):
         return results
 
     def categories(self, category=''):
-        # results = list();  # <type 'list'>
-        # category = {
-        #     'URL': self._base_uri % 'countries', # http://www.radio-browser.info/webservice/xml/
-        #     'element': 'outline',
-        #     'key: 'countries',
-        #     'text': 'Countries',
-        #     'type': 'link'
-        # };
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.categories')
 
-        # category['text'] = 'Countries';
-        # category['key'] = 'countries';
-        # results.append(category);
+        # No possibility to get it from the API ...
+        '''
+        results = [];  # <type 'list'>
+        category = {   # <type 'dict'>
+            'URL': self._base_uri % 'countries', # http://www.radio-browser.info/webservice/json/countries
+            'element': 'outline',
+            'key: 'countries',
+            'text': 'Countries',
+            'type': 'link'
+        };
+        results.append(category);
 
-        # category['text'] = 'Languages';
-        # category['key'] = 'languages';
-        # results.append(category);
+        category = {
+            'URL': self._base_uri % 'languages', # http://www.radio-browser.info/webservice/json/languages
+            'element': 'outline',
+            'text': 'Languages',
+            'key': 'languages',
+            'type': 'link'
+        };
+        results.append(category);
 
-        # category['text'] = 'Tags';
-        # category['key'] = 'tags';
-        # results.append(category);
+        category = {
+            'URL': self._base_uri % 'tags', # http://www.radio-browser.info/webservice/json/tags
+            'element': 'outline',
+            'text': 'Tags',
+            'key': 'tags',
+            'type': 'link'
+        };
+        results.append(category);
 
-        # category['text'] = 'Top 50 clicked';
-        # category['key'] = 'clicks';
-        # results.append(category);
+        category = {
+            'URL': self._base_uri % 'stations/topclick', # http://www.radio-browser.info/webservice/json/stations/topclick
+            'element': 'outline',
+            'text': 'Top 50 clicked',
+            'key': 'clicks',
+            'type': 'link'
+        };
+        results.append(category);
 
-        # category['text'] = 'Top 50 voted';
-        # category['key'] = 'votes';
-        # results.append(category);
-
+        category = {
+            'URL': self._base_uri % 'stations/topvote', # http://www.radio-browser.info/webservice/json/stations/topvote
+            'element': 'outline',
+            'text': 'Top 50 voted',
+            'key': 'votes',
+            'type': 'link'
+        };
+        results.append(category);
+        '''
         if category == 'location':
             args = '&id=r0'  # Annoying special case
         elif category == 'language':
@@ -278,37 +329,55 @@ class RadioBrowser(object):
         return results
 
     def locations(self, location):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.locations')
+
         args = '&id=' + location
         results = self._radiobrowser('Browse.ashx', args)
         # TODO: Support filters here
         return [x for x in results if x.get('type', '') == 'link']
 
     def _browse(self, section_name, guide_id):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._browse')
+
         args = '&id=' + guide_id
         results = self._radiobrowser('Browse.ashx', args)
         return self._filter_results(results, section_name)
 
     def featured(self, guide_id):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.featured')
+
         return self._browse('Featured', guide_id)
 
     def local(self, guide_id):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.local')
+
         return self._browse('Local', guide_id)
 
     def stations(self, guide_id):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.stations')
+
         return self._browse('Station', guide_id)
 
     def related(self, guide_id):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.related')
+
         return self._browse('Related', guide_id)
 
     def shows(self, guide_id):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.shows')
+
         return self._browse('Show', guide_id)
 
     def episodes(self, guide_id):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.episodes')
+
         args = '&c=pbrowse&id=' + guide_id
         results = self._radiobrowser('Tune.ashx', args)
         return self._filter_results(results, 'Topic')
 
     def _map_listing(self, listing):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._map_listing')
+
         # We've already checked 'guide_id' exists
         url_args = 'Tune.ashx?id=%s' % listing['guide_id']
         return {'text': listing.get('name', '???'),
@@ -319,6 +388,8 @@ class RadioBrowser(object):
                 'URL': self._base_uri % url_args}
 
     def _station_info(self, station_id):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._station_info')
+
         logger.debug('RadioBrowser: Fetching info for station %s' % station_id)
         args = '&c=composite&detail=listing&id=' + station_id
         results = self._radiobrowser('Describe.ashx', args)
@@ -327,6 +398,8 @@ class RadioBrowser(object):
             return listings[0]
 
     def parse_stream_url(self, url):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.parse_stream_url')
+
         logger.debug('RadioBrowser: Extracting URIs from %s', url)
         extension = urlparse.urlparse(url).path[-4:]
         if extension in ['.mp3', '.wma']:
@@ -351,6 +424,8 @@ class RadioBrowser(object):
         return list(OrderedDict.fromkeys(results))
 
     def tune(self, station):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.tune')
+
         logger.debug('RadioBrowser: Tuning station id %s' % station['guide_id'])
         args = '&id=' + station['guide_id']
         stream_uris = []
@@ -362,6 +437,8 @@ class RadioBrowser(object):
         return list(OrderedDict.fromkeys(stream_uris))
 
     def station(self, station_id):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.station')
+
         if station_id in self._stations:
             station = self._stations[station_id]
         else:
@@ -370,6 +447,8 @@ class RadioBrowser(object):
         return station
 
     def search(self, query):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.search')
+
         # "Search.ashx?query=" + query + filterVal
         if not query:
             logger.debug('RadioBrowser: Empty search query')
@@ -386,8 +465,10 @@ class RadioBrowser(object):
 
         return results
 
-    @cache()
+    # @cache()   # Can't be debugged
     def _radiobrowser(self, variant, args):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._radiobrowser')
+
         uri = (self._base_uri % variant) + '?render=json' + args
         logger.debug('RadioBrowser: RadioBrowser request: %s', uri)
         try:
@@ -398,8 +479,10 @@ class RadioBrowser(object):
             logger.info('RadioBrowser API request for %s failed: %s' % (variant, e))
         return {}
 
-    @cache()
+    # @cache()   # Can't be debugged
     def _get_playlist(self, uri):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._get_playlist')
+
         data, content_type = None, None
         try:
             # Defer downloading the body until know it's not a stream
