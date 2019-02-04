@@ -23,10 +23,14 @@ RADIOBROWSER_ID_UNKNOWN = 'unknown'
 
 
 def unparse_uri(variant, identifier):
+    logger.debug('RadioBrowser: Start translator.unparse_uri')
+
     return b'radiobrowser:%s:%s' % (variant, identifier)
 
 
 def parse_uri(uri):
+    logger.debug('RadioBrowser: Start translator.parse_uri')
+
     result = re.findall(r'^radiobrowser:([a-z]+)(?::(\w+))?$', uri)
     if result:
         return result[0]
@@ -34,6 +38,8 @@ def parse_uri(uri):
 
 
 def station_to_ref(station):
+    logger.debug('RadioBrowser: Start translator.station_to_ref')
+
     if station['type'] != 'audio':
         logger.debug('RadioBrowser: Expecting station but got %s' % station['type'])
     guide_id = station.get('guide_id', '??')
@@ -46,6 +52,8 @@ def station_to_ref(station):
 
 
 def station_to_track(station):
+    logger.debug('RadioBrowser: Start translator.station_to_track')
+
     ref = station_to_ref(station)
     return Track(uri=ref.uri,
                  name=station.get('subtext', ref.name),
@@ -56,6 +64,8 @@ def station_to_track(station):
 
 
 def show_to_ref(show):
+    logger.debug('RadioBrowser: Start translator.show_to_ref')
+
     if show['item'] != 'show':
         logger.debug('RadioBrowser: Expecting show but got %s' % show['item'])
     uri = unparse_uri('episodes', show.get('guide_id', '??'))
@@ -64,11 +74,15 @@ def show_to_ref(show):
 
 
 def category_to_ref(category):
+    logger.debug('RadioBrowser: Start translator.category_to_ref')
+
     uri = unparse_uri('category', category['key'])
     return Ref.directory(uri=uri, name=category['text'])
 
 
 def section_to_ref(section, identifier=''):
+    logger.debug('RadioBrowser: Start translator.section_to_ref')
+
     if section.get('type', 'link') == 'audio':
         return station_to_ref(section)
     guide_id = section.get('guide_id', '??')
@@ -80,6 +94,8 @@ def section_to_ref(section, identifier=''):
 
 
 def get_id_type(guide_id):
+    logger.debug('RadioBrowser: Start translator.get_id_type')
+
     return {'p': RADIOBROWSER_ID_PROGRAM,
             's': RADIOBROWSER_ID_STATION,
             'g': RADIOBROWSER_ID_GROUP,
@@ -92,6 +108,8 @@ def get_id_type(guide_id):
 
 
 def mopidy_to_radiobrowser_query(mopidy_query):
+    logger.debug('RadioBrowser: Start translator.mopidy_to_radiobrowser_query')
+
     radiobrowser_query = []
     for (field, values) in mopidy_query.iteritems():
         if not hasattr(values, '__iter__'):
