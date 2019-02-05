@@ -28,6 +28,7 @@ def unparse_uri(variant, identifier):
     return b'radiobrowser:%s:%s' % (variant, identifier)
 
 
+# Parse the uri to ???
 def parse_uri(uri):
     logger.debug('RadioBrowser: Start translator.parse_uri')
 
@@ -73,24 +74,28 @@ def show_to_ref(show):
     return Ref.directory(uri=uri, name=name)
 
 
+# Translate the TuneIn category entries to Mopidy Ref element
 def category_to_ref(category):
     logger.debug('RadioBrowser: Start translator.category_to_ref')
 
     uri = unparse_uri('category', category['key'])
-    return Ref.directory(uri=uri, name=category['text'])
+    ret = Ref.directory(uri=uri, name=category['text'])
+    return ret
 
 
 def section_to_ref(section, identifier=''):
     logger.debug('RadioBrowser: Start translator.section_to_ref')
 
     if section.get('type', 'link') == 'audio':
-        return station_to_ref(section)
+        ret = station_to_ref(section)
+        return ret
     guide_id = section.get('guide_id', '??')
     if get_id_type(guide_id) == RADIOBROWSER_ID_REGION or identifier == 'local':
         uri = unparse_uri('location', guide_id)
     else:
         uri = unparse_uri('section', guide_id)
-    return Ref.directory(uri=uri, name=section['text'])
+    ret = Ref.directory(uri=uri, name=section['text'])
+    return ret
 
 
 def get_id_type(guide_id):

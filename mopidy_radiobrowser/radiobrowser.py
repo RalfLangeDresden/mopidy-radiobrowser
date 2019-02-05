@@ -201,10 +201,60 @@ class RadioBrowser(object):
     def __init__(self, timeout, session=None):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.__init__')
 
-        self._base_uri = 'http://opml.radiotime.com/%s'
+        self._base_uri = 'http://www.radio-browser.info/webservice/json/%s'
         self._session = session or requests.Session()
         self._timeout = timeout / 1000.0
         self._stations = {}
+        self._categories = [];  # <type 'list'>
+        category = {   # <type 'dict'>
+            'URL'    : self._base_uri % 'countries', # http://www.radio-browser.info/webservice/json/countries
+            'uri'    : 'radiobrowser:category:countries',
+            'element': 'outline',
+            'key'    : 'countries',
+            'text'   : 'Countries',
+            'type'   : 'link'
+        };
+        self._categories.append(category);
+
+        category = {
+            'URL': self._base_uri % 'languages', # http://www.radio-browser.info/webservice/json/languages
+            'uri'    : 'radiobrowser:category:languages',
+            'element': 'outline',
+            'text'   : 'Languages',
+            'key'    : 'languages',
+            'type'   : 'link'
+        };
+        self._categories.append(category);
+
+        category = {
+            'URL'    : self._base_uri % 'tags', # http://www.radio-browser.info/webservice/json/tags
+            'uri'    : 'radiobrowser:category:tags',
+            'element': 'outline',
+            'text'   : 'Tags',
+            'key'    : 'tags',
+            'type'   : 'link'
+        };
+        self._categories.append(category);
+
+        category = {
+            'URL'    : self._base_uri % 'stations/topclick/10', # http://www.radio-browser.info/webservice/json/stations/topclick
+            'uri'    : 'radiobrowser:category:click',
+            'element': 'outline',
+            'text'   : 'Top 50 clicked',
+            'key'    : 'clicks',
+            'type'   : 'link'
+        };
+        self._categories.append(category);
+
+        category = {
+            'URL'    : self._base_uri % 'stations/topvote/10', # http://www.radio-browser.info/webservice/json/stations/topvote
+            'uri'    : 'radiobrowser:category:vote',
+            'element': 'outline',
+            'text'   : 'Top 50 voted',
+            'key'    : 'votes',
+            'type'   : 'link'
+        };
+        self._categories.append(category);
 
     def reload(self):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.reload')
@@ -252,56 +302,21 @@ class RadioBrowser(object):
                 grab_item(item)
         return results
 
-    def categories(self, category=''):
+    def categories(self, key=''):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.categories')
 
         # No possibility to get it from the API ...
-        '''
-        results = [];  # <type 'list'>
-        category = {   # <type 'dict'>
-            'URL': self._base_uri % 'countries', # http://www.radio-browser.info/webservice/json/countries
-            'element': 'outline',
-            'key: 'countries',
-            'text': 'Countries',
-            'type': 'link'
-        };
-        results.append(category);
-
-        category = {
-            'URL': self._base_uri % 'languages', # http://www.radio-browser.info/webservice/json/languages
-            'element': 'outline',
-            'text': 'Languages',
-            'key': 'languages',
-            'type': 'link'
-        };
-        results.append(category);
-
-        category = {
-            'URL': self._base_uri % 'tags', # http://www.radio-browser.info/webservice/json/tags
-            'element': 'outline',
-            'text': 'Tags',
-            'key': 'tags',
-            'type': 'link'
-        };
-        results.append(category);
-
-        category = {
-            'URL': self._base_uri % 'stations/topclick', # http://www.radio-browser.info/webservice/json/stations/topclick
-            'element': 'outline',
-            'text': 'Top 50 clicked',
-            'key': 'clicks',
-            'type': 'link'
-        };
-        results.append(category);
-
-        category = {
-            'URL': self._base_uri % 'stations/topvote', # http://www.radio-browser.info/webservice/json/stations/topvote
-            'element': 'outline',
-            'text': 'Top 50 voted',
-            'key': 'votes',
-            'type': 'link'
-        };
-        results.append(category);
+        
+        if '' == key :
+            results = self._categories
+        else:
+            # Use the key to find the category
+            for category in self._categories:
+                if key == category['key']:
+                    url = category['URL']
+                    results = list(self._radiobrowser(url, ''))
+            results = []
+        
         '''
         if category == 'location':
             args = '&id=r0'  # Annoying special case
@@ -326,6 +341,8 @@ class RadioBrowser(object):
             results.append(trending)
         else:
             results = self._filter_results(results)
+        '''
+        
         return results
 
     def locations(self, location):
@@ -466,15 +483,16 @@ class RadioBrowser(object):
         return results
 
     # @cache()   # Can't be debugged
-    def _radiobrowser(self, variant, args):
+    def _radiobrowser(self, url, args):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._radiobrowser')
 
-        uri = (self._base_uri % variant) + '?render=json' + args
-        logger.debug('RadioBrowser: RadioBrowser request: %s', uri)
+        uri = url + args
+        logger.debug('RadioBrowser: Request: %s', uri)
         try:
             with closing(self._session.get(uri, timeout=self._timeout)) as r:
                 r.raise_for_status()
-                return r.json()['body']
+                ret = r.json() # ['body']
+                return ret
         except Exception as e:
             logger.info('RadioBrowser API request for %s failed: %s' % (variant, e))
         return {}
