@@ -263,6 +263,7 @@ class RadioBrowser(object):
         self._radiobrowser.clear()
         self._get_playlist.clear()
 
+    # glaetten, abgleichen, abspecken, geraderichten
     def _flatten(self, data):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._flatten')
 
@@ -274,39 +275,41 @@ class RadioBrowser(object):
                 results.append(item)
         return results
 
+    def _grab_item(item):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._grab_item')
+
+        if 'guide_id' not in item:
+            return
+        if map_func:
+            station = map_func(item)
+        elif item.get('type', 'link') == 'link':
+            results.append(item)
+            return
+        else:
+            station = item
+        self._stations[station['guide_id']] = station
+        results.append(station)
+
     def _filter_results(self, data, section_name=None, map_func=None):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._filter_results')
 
         results = []
-
-        def grab_item(item):
-            if 'guide_id' not in item:
-                return
-            if map_func:
-                station = map_func(item)
-            elif item.get('type', 'link') == 'link':
-                results.append(item)
-                return
-            else:
-                station = item
-            self._stations[station['guide_id']] = station
-            results.append(station)
 
         for item in data:
             if section_name is not None:
                 section_key = item.get('key', '').lower()
                 if section_key.startswith(section_name.lower()):
                     for child in item['children']:
-                        grab_item(child)
+                        self._grab_item(child)
             else:
-                grab_item(item)
+                self._grab_item(item)
         return results
 
     def categories(self, key=''):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.categories')
 
         # No possibility to get it from the API ...
-        
+
         if '' == key :
             results = self._categories
         else:
@@ -316,7 +319,7 @@ class RadioBrowser(object):
                     url = category['URL']
                     results = list(self._radiobrowser(url, ''))
             results = []
-        
+
         '''
         if category == 'location':
             args = '&id=r0'  # Annoying special case
@@ -342,7 +345,7 @@ class RadioBrowser(object):
         else:
             results = self._filter_results(results)
         '''
-        
+
         return results
 
     def locations(self, location):
