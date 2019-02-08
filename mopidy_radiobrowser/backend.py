@@ -74,9 +74,30 @@ class RadioBrowserLibrary(backend.LibraryProvider):
             # root list: all categies
             for category in self.backend.radiobrowser.categories():
                 result.append(translator.category_to_ref(category))
-        elif variant == "category" and identifier:
-            for section in self.backend.radiobrowser.categories(identifier):
-                result.append(translator.section_to_ref(section, identifier))
+        elif "category" == variant:
+            if "countries" == identifier:
+                stations = self.backend.radiobrowser.categories(identifier)
+                for station in stations:
+                    result.append(translator.station_to_ref(station))
+            elif "languages" == identifier:
+                stations = self.backend.radiobrowser.categories(identifier)
+                for station in stations:
+                    result.append(translator.station_to_ref(station))
+            elif "tags" == identifier:
+                stations = self.backend.radiobrowser.categories(identifier)
+                for station in stations:
+                    result.append(translator.station_to_ref(station))
+            elif "clicks" == identifier:
+                stations = self.backend.radiobrowser.categories(identifier)
+                for station in stations:
+                    result.append(translator.station_to_ref(station))
+            elif "votes" == identifier:
+                stations = self.backend.radiobrowser.categories(identifier)
+                for station in stations:
+                    self.backend.radiobrowser.addStation(station)
+                    result.append(translator.station_to_ref(station))
+            else:
+                logger.debug('RadioBrowser: Unknown URI: %s', uri)
         elif variant == "location" and identifier:
             for location in self.backend.radiobrowser.locations(identifier):
                 result.append(translator.section_to_ref(location, 'local'))

@@ -263,7 +263,7 @@ class RadioBrowser(object):
         self._radiobrowser.clear()
         self._get_playlist.clear()
 
-    # glaetten, abgleichen, abspecken, geraderichten
+    ''' glaetten, abgleichen, abspecken, geraderichten
     def _flatten(self, data):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._flatten')
 
@@ -274,7 +274,14 @@ class RadioBrowser(object):
             else:
                 results.append(item)
         return results
+    '''
 
+    def addStation(self, station):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addStation')
+        
+        self._stations[station['id']] = station
+
+    '''
     def _grab_item(item):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._grab_item')
 
@@ -304,9 +311,10 @@ class RadioBrowser(object):
             else:
                 self._grab_item(item)
         return results
+    '''
 
     def categories(self, key=''):
-        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.categories')
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.categories (key="' + key + '")')
 
         # No possibility to get it from the API ...
 
@@ -318,7 +326,7 @@ class RadioBrowser(object):
                 if key == category['key']:
                     url = category['URL']
                     results = list(self._radiobrowser(url, ''))
-            results = []
+                    return results
 
         '''
         if category == 'location':

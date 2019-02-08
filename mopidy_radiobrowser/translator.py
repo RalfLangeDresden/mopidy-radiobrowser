@@ -41,14 +41,12 @@ def parse_uri(uri):
 def station_to_ref(station):
     logger.debug('RadioBrowser: Start translator.station_to_ref')
 
-    if station['type'] != 'audio':
-        logger.debug('RadioBrowser: Expecting station but got %s' % station['type'])
-    guide_id = station.get('guide_id', '??')
-    uri = unparse_uri('station', guide_id)
-    name = station.get('text', station['URL'])
+    id = station.get('id', '??')
+    uri = unparse_uri('station', id)
+    name = station.get('name', station.get('url', '??'))
     # TODO: Should the name include 'now playing' for all stations?
-    if get_id_type(guide_id) == RADIOBROWSER_ID_TOPIC:
-        name = name + ' [%s]' % station.get('subtext', '??')
+    # if get_id_type(id) == RADIOBROWSER_ID_TOPIC:
+    #     name = name + ' [%s]' % station.get('subtext', '??')
     return Ref.track(uri=uri, name=name)
 
 
