@@ -54,12 +54,13 @@ def station_to_track(station):
     logger.debug('RadioBrowser: Start translator.station_to_track')
 
     ref = station_to_ref(station)
-    return Track(uri=ref.uri,
-                 name=station.get('subtext', ref.name),
-                 album=Album(name=ref.name,
-                             uri=ref.uri,
-                             images=[station.get('image')]),
-                 artists=[Artist(name=ref.name, uri=ref.uri)])
+    stationAlbum = Album(name=ref.name,
+                         uri=ref.uri,
+                         images=[station.get('favicon')])
+    stationArtists = [Artist(name=ref.name, uri=ref.uri)]
+    stationName = station.get('name', ref.name)
+    track = Track(uri=ref.uri, name=stationName, album=stationAlbum, artists=stationArtists)
+    return track
 
 
 def show_to_ref(show):

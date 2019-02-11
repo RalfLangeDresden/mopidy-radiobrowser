@@ -270,6 +270,14 @@ class RadioBrowser(object):
         self._categories.append(category);
 
     def getCategory(self, categoryId):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getCategory')
+
+        if categoryId in self._categories:
+            category = self._categories[categoryId]
+        else:
+            logger.error('RadioBrowser: Unknown category with id=' + categoryId)
+            category = None
+        return category
 
     def addStation(self, station):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addStation')
@@ -470,12 +478,9 @@ class RadioBrowser(object):
     def tune(self, station):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.tune')
 
-        logger.debug('RadioBrowser: Tuning station id %s' % station['guide_id'])
-        args = '&id=' + station['guide_id']
+        logger.debug('RadioBrowser: Tuning station id %s' % station['name'])
         stream_uris = []
-        for stream in self._radiobrowser('Tune.ashx', args):
-            if 'url' in stream:
-                stream_uris.append(stream['url'])
+        stream_uris.append(station['url'])
         if not stream_uris:
             logger.error('Failed to tune station id %s' % station['guide_id'])
         return list(OrderedDict.fromkeys(stream_uris))

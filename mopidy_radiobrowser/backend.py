@@ -90,6 +90,7 @@ class RadioBrowserLibrary(backend.LibraryProvider):
             elif "clicks" == identifier:
                 stations = self.backend.radiobrowser.categories(identifier)
                 for station in stations:
+                    self.backend.radiobrowser.addStation(station)
                     result.append(translator.station_to_ref(station))
             elif "votes" == identifier:
                 stations = self.backend.radiobrowser.categories(identifier)
