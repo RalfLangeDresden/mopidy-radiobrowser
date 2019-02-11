@@ -206,6 +206,7 @@ class RadioBrowser(object):
         self._timeout = timeout / 1000.0
         self._stations = {}
         self._categories = [];  # <type 'list'>
+
         category = {   # <type 'dict'>
             'URL'    : self._base_uri % 'countries', # http://www.radio-browser.info/webservice/json/countries
             'uri'    : 'radiobrowser:category:countries',
@@ -214,7 +215,7 @@ class RadioBrowser(object):
             'text'   : 'Countries',
             'type'   : 'link'
         };
-        self._categories.append(category);
+        self.addCategory(category);
 
         category = {
             'URL': self._base_uri % 'languages', # http://www.radio-browser.info/webservice/json/languages
@@ -224,7 +225,7 @@ class RadioBrowser(object):
             'key'    : 'languages',
             'type'   : 'link'
         };
-        self._categories.append(category);
+        self.addCategory(category);
 
         category = {
             'URL'    : self._base_uri % 'tags', # http://www.radio-browser.info/webservice/json/tags
@@ -234,7 +235,7 @@ class RadioBrowser(object):
             'key'    : 'tags',
             'type'   : 'link'
         };
-        self._categories.append(category);
+        self.addCategory(category);
 
         category = {
             'URL'    : self._base_uri % 'stations/topclick/10', # http://www.radio-browser.info/webservice/json/stations/topclick
@@ -244,7 +245,7 @@ class RadioBrowser(object):
             'key'    : 'clicks',
             'type'   : 'link'
         };
-        self._categories.append(category);
+        self.addCategory(category);
 
         category = {
             'URL'    : self._base_uri % 'stations/topvote/10', # http://www.radio-browser.info/webservice/json/stations/topvote
@@ -254,7 +255,7 @@ class RadioBrowser(object):
             'key'    : 'votes',
             'type'   : 'link'
         };
-        self._categories.append(category);
+        self.addCategory(category);
 
     def reload(self):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.reload')
@@ -263,55 +264,27 @@ class RadioBrowser(object):
         self._radiobrowser.clear()
         self._get_playlist.clear()
 
-    ''' glaetten, abgleichen, abspecken, geraderichten
-    def _flatten(self, data):
-        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._flatten')
+    def addCategory(self, category):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addCategory')
 
-        results = []
-        for item in data:
-            if 'children' in item:
-                results.extend(item['children'])
-            else:
-                results.append(item)
-        return results
-    '''
+        self._categories.append(category);
+
+    def getCategory(self, categoryId):
 
     def addStation(self, station):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addStation')
-        
+
         self._stations[station['id']] = station
 
-    '''
-    def _grab_item(item):
-        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._grab_item')
+    def getStation(self, stationId):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getStation')
 
-        if 'guide_id' not in item:
-            return
-        if map_func:
-            station = map_func(item)
-        elif item.get('type', 'link') == 'link':
-            results.append(item)
-            return
+        if stationId in self._stations:
+            station = self._stations[stationId]
         else:
-            station = item
-        self._stations[station['guide_id']] = station
-        results.append(station)
-
-    def _filter_results(self, data, section_name=None, map_func=None):
-        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._filter_results')
-
-        results = []
-
-        for item in data:
-            if section_name is not None:
-                section_key = item.get('key', '').lower()
-                if section_key.startswith(section_name.lower()):
-                    for child in item['children']:
-                        self._grab_item(child)
-            else:
-                self._grab_item(item)
-        return results
-    '''
+            station = self._station_info(stationId)
+            self._stations['stationId'] = station
+        return station
 
     def categories(self, key=''):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.categories (key="' + key + '")')
@@ -355,6 +328,49 @@ class RadioBrowser(object):
         '''
 
         return results
+
+    ''' glaetten, abgleichen, abspecken, geraderichten
+    def _flatten(self, data):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._flatten')
+
+        results = []
+        for item in data:
+            if 'children' in item:
+                results.extend(item['children'])
+            else:
+                results.append(item)
+        return results
+
+    def _grab_item(item):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._grab_item')
+
+        if 'guide_id' not in item:
+            return
+        if map_func:
+            station = map_func(item)
+        elif item.get('type', 'link') == 'link':
+            results.append(item)
+            return
+        else:
+            station = item
+        self._stations[station['guide_id']] = station
+        results.append(station)
+
+    def _filter_results(self, data, section_name=None, map_func=None):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._filter_results')
+
+        results = []
+
+        for item in data:
+            if section_name is not None:
+                section_key = item.get('key', '').lower()
+                if section_key.startswith(section_name.lower()):
+                    for child in item['children']:
+                        self._grab_item(child)
+            else:
+                self._grab_item(item)
+        return results
+    '''
 
     def locations(self, location):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.locations')
@@ -415,11 +431,11 @@ class RadioBrowser(object):
                 'subtext': listing.get('slogan', ''),
                 'URL': self._base_uri % url_args}
 
-    def _station_info(self, station_id):
+    def _station_info(self, stationId):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._station_info')
 
-        logger.debug('RadioBrowser: Fetching info for station %s' % station_id)
-        args = '&c=composite&detail=listing&id=' + station_id
+        logger.debug('RadioBrowser: Fetching info for station %s' % stationId)
+        args = '&c=composite&detail=listing&id=' + stationId
         results = self._radiobrowser('Describe.ashx', args)
         listings = self._filter_results(results, 'Listing', self._map_listing)
         if listings:
@@ -463,16 +479,6 @@ class RadioBrowser(object):
         if not stream_uris:
             logger.error('Failed to tune station id %s' % station['guide_id'])
         return list(OrderedDict.fromkeys(stream_uris))
-
-    def station(self, station_id):
-        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.station')
-
-        if station_id in self._stations:
-            station = self._stations[station_id]
-        else:
-            station = self._station_info(station_id)
-            self._stations['station_id'] = station
-        return station
 
     def search(self, query):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.search')

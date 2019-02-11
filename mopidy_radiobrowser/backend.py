@@ -139,7 +139,7 @@ class RadioBrowserLibrary(backend.LibraryProvider):
         variant, identifier = translator.parse_uri(uri)
         if variant != 'station':
             return []
-        station = self.backend.radiobrowser.station(identifier)
+        station = self.backend.radiobrowser.getStation(identifier)
         if not station:
             return []
 
@@ -165,7 +165,7 @@ class RadioBrowserPlayback(backend.PlaybackProvider):
         logger.debug('RadioBrowser: Start backend.RadioBrowserPlayback.translate_uri')
 
         variant, identifier = translator.parse_uri(uri)
-        station = self.backend.radiobrowser.station(identifier)
+        station = self.backend.radiobrowser.getStation(identifier)
         if not station:
             return None
         stream_uris = self.backend.radiobrowser.tune(station)
