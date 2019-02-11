@@ -76,17 +76,20 @@ class RadioBrowserLibrary(backend.LibraryProvider):
                 result.append(translator.category_to_ref(category))
         elif "category" == variant:
             if "countries" == identifier:
-                stations = self.backend.radiobrowser.categories(identifier)
-                for station in stations:
-                    result.append(translator.station_to_ref(station))
+                countries = self.backend.radiobrowser.categories(identifier)
+                for country in countries:
+                    self.backend.radiobrowser.addDirectory(country)
+                    result.append(translator.country_to_ref(country))
             elif "languages" == identifier:
-                stations = self.backend.radiobrowser.categories(identifier)
-                for station in stations:
-                    result.append(translator.station_to_ref(station))
+                languages = self.backend.radiobrowser.categories(identifier)
+                for language in languages:
+                    self.backend.radiobrowser.addDirectory(language)
+                    result.append(translator.language_to_ref(language))
             elif "tags" == identifier:
-                stations = self.backend.radiobrowser.categories(identifier)
-                for station in stations:
-                    result.append(translator.station_to_ref(station))
+                tags = self.backend.radiobrowser.categories(identifier)
+                for tag in tags:
+                    self.backend.radiobrowser.addDirectory(tag)
+                    result.append(translator.tag_to_ref(tag))
             elif "clicks" == identifier:
                 stations = self.backend.radiobrowser.categories(identifier)
                 for station in stations:

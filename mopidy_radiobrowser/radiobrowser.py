@@ -204,8 +204,9 @@ class RadioBrowser(object):
         self._base_uri = 'http://www.radio-browser.info/webservice/json/%s'
         self._session = session or requests.Session()
         self._timeout = timeout / 1000.0
+        self._categories = []  # <type 'list'>
+        self._directories = {}
         self._stations = {}
-        self._categories = [];  # <type 'list'>
 
         category = {   # <type 'dict'>
             'URL'    : self._base_uri % 'countries', # http://www.radio-browser.info/webservice/json/countries
@@ -279,6 +280,21 @@ class RadioBrowser(object):
             category = None
         return category
 
+    def addDirectory(self, directory):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addDirectory')
+
+        self._directories[directory['id']] = directory
+        
+    def getDirectory(selfself, directoryId):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getDirectory')
+
+        if directoryId in self._directories:
+            directory = self._directories[directoryId]
+        else:
+            logger.error('RadioBrowser: Unknown directory with id=' + directoryId)
+            directory = None
+        return directory
+        
     def addStation(self, station):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addStation')
 
