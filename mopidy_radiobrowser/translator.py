@@ -82,6 +82,49 @@ def category_to_ref(category):
     return ret
 
 
+'''
+RadioBrowser country data structure:
+ * 'value' - Name of the country
+ * 'stationcount' - Count of stations using this country
+'''
+def country_to_ref(country):
+    logger.debug('RadioBrowser: Start translator.country_to_ref')
+
+    countryName = country['value']
+    countryUri = unparse_uri('country', countryName)
+    ret = Ref.directory(uri=countryUri, name=countryName)
+    return ret
+
+
+'''
+RadioBrowser state data structure:
+ * 'value' - Name of the state
+ * 'country' - Name of country of the state
+ * 'stationcount' - Count of stations using this state
+'''
+def state_to_ref(state):
+    logger.debug('RadioBrowser: Start translator.state_to_ref')
+
+    stateName = state['value']
+    stateUri = unparse_uri('state', stateName)
+    ret = Ref.directory(uri=stateUri, name=stateName)
+    return ret
+
+
+'''
+RadioBrowser tag data structure:
+ * 'value' - Name of the tag
+ * 'stationcount' - Count of stations using this tag
+'''
+def tag_to_ref(tag):
+    logger.debug('RadioBrowser: Start translator.tag_to_ref')
+
+    tagName = tag['value']
+    tagUri = unparse_uri('tag', tagName)
+    ret = Ref.directory(uri=tagUri, name=tagName)
+    return ret
+
+
 def section_to_ref(section, identifier=''):
     logger.debug('RadioBrowser: Start translator.section_to_ref')
 
