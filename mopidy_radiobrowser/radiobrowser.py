@@ -209,7 +209,8 @@ class RadioBrowser(object):
         self._stations = {}
 
         category = {   # <type 'dict'>
-            'URL'    : self._base_uri % 'countries', # http://www.radio-browser.info/webservice/json/countries
+            # http://www.radio-browser.info/webservice/json/countries
+            'URL'    : self._base_uri % 'countries',
             'uri'    : 'radiobrowser:category:countries',
             'element': 'outline',
             'key'    : 'countries',
@@ -219,7 +220,8 @@ class RadioBrowser(object):
         self.addCategory(category);
 
         category = {
-            'URL': self._base_uri % 'languages', # http://www.radio-browser.info/webservice/json/languages
+            # http://www.radio-browser.info/webservice/json/languages
+            'URL': self._base_uri % 'languages',
             'uri'    : 'radiobrowser:category:languages',
             'element': 'outline',
             'text'   : 'Languages',
@@ -229,7 +231,8 @@ class RadioBrowser(object):
         self.addCategory(category);
 
         category = {
-            'URL'    : self._base_uri % 'tags', # http://www.radio-browser.info/webservice/json/tags
+            # http://www.radio-browser.info/webservice/json/tags
+            'URL'    : self._base_uri % 'tags',
             'uri'    : 'radiobrowser:category:tags',
             'element': 'outline',
             'text'   : 'Tags',
@@ -239,7 +242,8 @@ class RadioBrowser(object):
         self.addCategory(category);
 
         category = {
-            'URL'    : self._base_uri % 'stations/topclick/10', # http://www.radio-browser.info/webservice/json/stations/topclick
+            # http://www.radio-browser.info/webservice/json/stations/topclick
+            'URL'    : self._base_uri % 'stations/topclick/10',
             'uri'    : 'radiobrowser:category:click',
             'element': 'outline',
             'text'   : 'Top 50 clicked',
@@ -249,7 +253,8 @@ class RadioBrowser(object):
         self.addCategory(category);
 
         category = {
-            'URL'    : self._base_uri % 'stations/topvote/10', # http://www.radio-browser.info/webservice/json/stations/topvote
+            # http://www.radio-browser.info/webservice/json/stations/topvote
+            'URL'    : self._base_uri % 'stations/topvote/10',
             'uri'    : 'radiobrowser:category:vote',
             'element': 'outline',
             'text'   : 'Top 50 voted',
@@ -280,12 +285,56 @@ class RadioBrowser(object):
             category = None
         return category
 
+    def getCategories(self):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getCategories')
+
+        return self._categories
+
+    def browseCategory(self, key):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.browseCategory (key="' + key + '")')
+
+        # Use the key to find the category
+        for category in self._categories:
+            if key == category['key']:
+                url = category['URL']
+                results = list(self._radiobrowser(url, ''))
+                return results
+
+        return results
+
     def addDirectory(self, directory):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addDirectory')
 
-        self._directories[directory['id']] = directory
-        
-    def getDirectory(selfself, directoryId):
+        self._directories[directory['name']] = directory
+
+    def addCountry(self, country):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addCountry')
+
+        # Add the url to browse the country
+        # http://www.radio-browser.info/webservice/json/stations/bycountry/<name>
+        country['URL'] = self._base_uri % 'stations/bycountry/' % country['name']
+
+        self.addDirectory(tag)
+
+    def addLanguage(self, language):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addLanguage')
+
+        # Add the url to browse the language
+        # http://www.radio-browser.info/webservice/json/stations/bylanguage/<name>
+        language['URL'] = self._base_uri % 'stations/bylanguage/' % language['name']
+
+        self.addDirectory(tag)
+
+    def addTag(self, tag):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addTag')
+
+        # Add the url to browse the tag
+        # http://www.radio-browser.info/webservice/json/stations/bytag/<name>
+        tag['URL'] = self._base_uri % 'stations/bytag/' % tag['name']
+
+        self.addDirectory(tag)
+
+    def getDirectory(self, directoryId):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getDirectory')
 
         if directoryId in self._directories:
@@ -294,7 +343,24 @@ class RadioBrowser(object):
             logger.error('RadioBrowser: Unknown directory with id=' + directoryId)
             directory = None
         return directory
-        
+
+    def getDirectories(self):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getDirectories')
+
+        return self._directories
+
+    def browseDirectory(self, key):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.browseDirectory (key="' + key + '")')
+
+        # Use the key to find the directory
+        for directory in self._directories:
+            if key == directory['name']:
+                url = directory['URL']
+                results = list(self._radiobrowser(url, ''))
+                return results
+
+        return results
+
     def addStation(self, station):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addStation')
 
@@ -309,49 +375,6 @@ class RadioBrowser(object):
             station = self._station_info(stationId)
             self._stations['stationId'] = station
         return station
-
-    def categories(self, key=''):
-        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.categories (key="' + key + '")')
-
-        # No possibility to get it from the API ...
-
-        if '' == key :
-            results = self._categories
-        else:
-            # Use the key to find the category
-            for category in self._categories:
-                if key == category['key']:
-                    url = category['URL']
-                    results = list(self._radiobrowser(url, ''))
-                    return results
-
-        '''
-        if category == 'location':
-            args = '&id=r0'  # Annoying special case
-        elif category == 'language':
-            args = '&c=lang'
-            return []  # TuneIn's API is a mess here, cba
-        else:
-            args = '&c=' + category
-
-        # Take a copy so we don't modify the cached data
-        results = list(self._radiobrowser('Browse.ashx', args))
-        if category in ('podcast', 'local'):
-            # Flatten the results!
-            results = self._filter_results(self._flatten(results))
-        elif category == '':
-            trending = {'text': 'Trending',
-                        'key': 'trending',
-                        'type': 'link',
-                        'URL': self._base_uri % 'Browse.ashx?c=trending'}
-            # Filter out the language root category for now
-            results = [x for x in results if x['key'] != 'language']
-            results.append(trending)
-        else:
-            results = self._filter_results(results)
-        '''
-
-        return results
 
     ''' glaetten, abgleichen, abspecken, geraderichten
     def _flatten(self, data):
@@ -527,6 +550,12 @@ class RadioBrowser(object):
         uri = url + args
         logger.debug('RadioBrowser: Request: %s', uri)
         try:
+            # self._session.get(url, **kwargs)
+            # self._session.post(url, data=None, json=None, **kwargs)
+            #  url: URL for the new Request object.
+            #  data: (optional) Dictionary, list of tuples, bytes, or file-like object to send in the body of the Request.
+            #  json: (optional) json to send in the body of the Request.
+            #  **kwargs: Optional arguments that request takes.
             with closing(self._session.get(uri, timeout=self._timeout)) as r:
                 r.raise_for_status()
                 ret = r.json() # ['body']

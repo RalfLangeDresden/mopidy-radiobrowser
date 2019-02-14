@@ -72,31 +72,31 @@ class RadioBrowserLibrary(backend.LibraryProvider):
         logger.debug('RadioBrowser: Browsing %s' % uri)
         if variant == 'root':
             # root list: all categies
-            for category in self.backend.radiobrowser.categories():
+            for category in self.backend.radiobrowser.getCategories():
                 result.append(translator.category_to_ref(category))
         elif "category" == variant:
             if "countries" == identifier:
-                countries = self.backend.radiobrowser.categories(identifier)
+                countries = self.backend.radiobrowser.browseCategory(identifier)
                 for country in countries:
-                    self.backend.radiobrowser.addDirectory(country)
+                    self.backend.radiobrowser.addCountry(country)
                     result.append(translator.country_to_ref(country))
             elif "languages" == identifier:
-                languages = self.backend.radiobrowser.categories(identifier)
+                languages = self.backend.radiobrowser.browseCategory(identifier)
                 for language in languages:
-                    self.backend.radiobrowser.addDirectory(language)
+                    self.backend.radiobrowser.addLanguage(language)
                     result.append(translator.language_to_ref(language))
             elif "tags" == identifier:
-                tags = self.backend.radiobrowser.categories(identifier)
+                tags = self.backend.radiobrowser.browseCategory(identifier)
                 for tag in tags:
-                    self.backend.radiobrowser.addDirectory(tag)
+                    self.backend.radiobrowser.addTag(tag)
                     result.append(translator.tag_to_ref(tag))
             elif "clicks" == identifier:
-                stations = self.backend.radiobrowser.categories(identifier)
+                stations = self.backend.radiobrowser.browseCategory(identifier)
                 for station in stations:
                     self.backend.radiobrowser.addStation(station)
                     result.append(translator.station_to_ref(station))
             elif "votes" == identifier:
-                stations = self.backend.radiobrowser.categories(identifier)
+                stations = self.backend.radiobrowser.browseCategory(identifier)
                 for station in stations:
                     self.backend.radiobrowser.addStation(station)
                     result.append(translator.station_to_ref(station))
