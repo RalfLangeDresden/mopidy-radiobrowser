@@ -21,6 +21,10 @@ try:
 except ImportError:
     import xml.etree.ElementTree as elementtree
 
+# Constants
+PREFIX_COUNTRY = 'country-'
+PREFIX_LANGUAGE = 'language-'
+PREFIX_TAG = 'tag-'
 
 logger = logging.getLogger(__name__)
 
@@ -305,34 +309,7 @@ class RadioBrowser(object):
     def addDirectory(self, directory):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addDirectory')
 
-        self._directories[directory['name']] = directory
-
-    def addCountry(self, country):
-        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addCountry')
-
-        # Add the url to browse the country
-        # http://www.radio-browser.info/webservice/json/stations/bycountry/<name>
-        country['URL'] = self._base_uri % 'stations/bycountry/' % country['name']
-
-        self.addDirectory(tag)
-
-    def addLanguage(self, language):
-        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addLanguage')
-
-        # Add the url to browse the language
-        # http://www.radio-browser.info/webservice/json/stations/bylanguage/<name>
-        language['URL'] = self._base_uri % 'stations/bylanguage/' % language['name']
-
-        self.addDirectory(tag)
-
-    def addTag(self, tag):
-        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addTag')
-
-        # Add the url to browse the tag
-        # http://www.radio-browser.info/webservice/json/stations/bytag/<name>
-        tag['URL'] = self._base_uri % 'stations/bytag/' % tag['name']
-
-        self.addDirectory(tag)
+        self._directories[directory['key']] = directory
 
     def getDirectory(self, directoryId):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getDirectory')
@@ -360,6 +337,51 @@ class RadioBrowser(object):
                 return results
 
         return results
+
+    def addCountry(self, country):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addCountry')
+
+        # Add the url to browse the country
+        # http://www.radio-browser.info/webservice/json/stations/bycountry/<name>
+        country['URL'] = self._base_uri % 'stations/bycountry/' % country['name']
+        country['key'] = PREFIX_COUNTRY % country['name']
+
+        self.addDirectory(country)
+
+    def getCountry(self, countryId):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getCountry')
+
+        return getDirectory(PREFIX_COUNTRY % countryId)
+
+    def addLanguage(self, language):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addLanguage')
+
+        # Add the url to browse the language
+        # http://www.radio-browser.info/webservice/json/stations/bylanguage/<name>
+        language['URL'] = self._base_uri % 'stations/bylanguage/' % language['name']
+        language['key'] = PREFIX_LANGUAGE % language['name']
+
+        self.addDirectory(language)
+
+    def getLanguage(self, languageId):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getLanguage')
+
+        return getDirectory(PREFIX_LANGUAGE % languageId)
+
+    def addTag(self, tag):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addTag')
+
+        # Add the url to browse the tag
+        # http://www.radio-browser.info/webservice/json/stations/bytag/<name>
+        tag['URL'] = self._base_uri % 'stations/bytag/' % tag['name']
+        tag['key'] = PREFIX_TAG % tag['name']
+
+        self.addDirectory(tag)
+
+    def getTag(self, tagId):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getTag')
+
+        return getDirectory(PREFIX_TAG % tagId)
 
     def addStation(self, station):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addStation')
