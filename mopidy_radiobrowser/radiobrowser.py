@@ -279,6 +279,8 @@ class RadioBrowser(object):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addCategory')
 
         self._categories.append(category);
+        
+        return True
 
     def getCategory(self, categoryId):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getCategory')
@@ -311,6 +313,8 @@ class RadioBrowser(object):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addDirectory')
 
         self._directories[directory['key']] = directory
+        
+        return True
 
     def getDirectory(self, directoryId):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getDirectory')
@@ -348,6 +352,8 @@ class RadioBrowser(object):
         country['key'] = PREFIX_COUNTRY + country['name']
 
         self.addDirectory(country)
+        
+        return True
 
     def getCountry(self, countryId):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getCountry')
@@ -356,6 +362,9 @@ class RadioBrowser(object):
 
     def addLanguage(self, language):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addLanguage')
+        
+        if '-' == language['name']:
+            return False
 
         # Add the url to browse the language
         # http://www.radio-browser.info/webservice/json/stations/bylanguage/<name>
@@ -363,6 +372,8 @@ class RadioBrowser(object):
         language['key'] = PREFIX_LANGUAGE + language['name']
 
         self.addDirectory(language)
+        
+        return True
 
     def getLanguage(self, languageId):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getLanguage')
@@ -378,6 +389,8 @@ class RadioBrowser(object):
         tag['key'] = PREFIX_TAG + tag['name']
 
         self.addDirectory(tag)
+        
+        return True
 
     def getTag(self, tagId):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getTag')
@@ -389,6 +402,8 @@ class RadioBrowser(object):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addStation')
 
         self._stations[station['id']] = station
+        
+        return True
 
     def getStation(self, stationId):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getStation')

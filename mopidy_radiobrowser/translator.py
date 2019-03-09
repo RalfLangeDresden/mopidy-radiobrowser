@@ -113,6 +113,7 @@ def state_to_ref(state):
 
 '''
 RadioBrowser tag data structure:
+ * 'name' - Name of the tag
  * 'value' - Name of the tag
  * 'stationcount' - Count of stations using this tag
 '''
@@ -122,6 +123,21 @@ def tag_to_ref(tag):
     tagName = tag['name']
     tagUri = unparse_uri('tag', tagName)
     ret = Ref.directory(uri=tagUri, name=tagName)
+    return ret
+
+
+'''
+RadioBrowser language data structure:
+ * 'name' - Name of the language
+ * 'value' - Name of the language
+ * 'stationcount' - Count of stations using this language
+'''
+def language_to_ref(language):
+    logger.debug('RadioBrowser: Start translator.language_to_ref')
+
+    languageName = language['name']
+    languageUri = unparse_uri('language', languageName)
+    ret = Ref.directory(uri=languageUri, name=languageName)
     return ret
 
 
