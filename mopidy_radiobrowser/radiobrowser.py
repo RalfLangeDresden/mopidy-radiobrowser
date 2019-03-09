@@ -11,6 +11,7 @@ from collections import OrderedDict
 from contextlib import closing
 
 import requests
+# from execnet.script.loop_socketserver import directory
 
 try:
     import cStringIO as StringIO
@@ -343,45 +344,46 @@ class RadioBrowser(object):
 
         # Add the url to browse the country
         # http://www.radio-browser.info/webservice/json/stations/bycountry/<name>
-        country['URL'] = self._base_uri % 'stations/bycountry/' % country['name']
-        country['key'] = PREFIX_COUNTRY % country['name']
+        country['URL'] = self._base_uri % ('stations/bycountry/' + country['name'])
+        country['key'] = PREFIX_COUNTRY + country['name']
 
         self.addDirectory(country)
 
     def getCountry(self, countryId):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getCountry')
 
-        return getDirectory(PREFIX_COUNTRY % countryId)
+        return self.getDirectory(PREFIX_COUNTRY + countryId)
 
     def addLanguage(self, language):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addLanguage')
 
         # Add the url to browse the language
         # http://www.radio-browser.info/webservice/json/stations/bylanguage/<name>
-        language['URL'] = self._base_uri % 'stations/bylanguage/' % language['name']
-        language['key'] = PREFIX_LANGUAGE % language['name']
+        language['URL'] = self._base_uri % ('stations/bylanguage/' + language['name'])
+        language['key'] = PREFIX_LANGUAGE + language['name']
 
         self.addDirectory(language)
 
     def getLanguage(self, languageId):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getLanguage')
 
-        return getDirectory(PREFIX_LANGUAGE % languageId)
+        return self.getDirectory(PREFIX_LANGUAGE + languageId)
 
     def addTag(self, tag):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addTag')
 
         # Add the url to browse the tag
         # http://www.radio-browser.info/webservice/json/stations/bytag/<name>
-        tag['URL'] = self._base_uri % 'stations/bytag/' % tag['name']
-        tag['key'] = PREFIX_TAG % tag['name']
+        tag['URL'] = self._base_uri % ('stations/bytag/' + tag['name'])
+        tag['key'] = PREFIX_TAG + tag['name']
 
         self.addDirectory(tag)
 
     def getTag(self, tagId):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getTag')
 
-        return getDirectory(PREFIX_TAG % tagId)
+        directoryId = PREFIX_TAG + tagId
+        return self.getDirectory(directoryId)
 
     def addStation(self, station):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addStation')
@@ -449,12 +451,13 @@ class RadioBrowser(object):
         # TODO: Support filters here
         return [x for x in results if x.get('type', '') == 'link']
 
-    def _browse(self, section_name, guide_id):
+    def _browse(self, tag):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._browse')
 
-        args = '&id=' + guide_id
-        results = self._radiobrowser('Browse.ashx', args)
-        return self._filter_results(results, section_name)
+        args = ''
+        url = tag['URL']
+        results = self._radiobrowser(url, args)
+        return results
 
     def featured(self, guide_id):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.featured')
@@ -466,10 +469,10 @@ class RadioBrowser(object):
 
         return self._browse('Local', guide_id)
 
-    def stations(self, guide_id):
+    def stations(self, tag):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.stations')
 
-        return self._browse('Station', guide_id)
+        return self._browse(tag)
 
     def related(self, guide_id):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.related')
@@ -583,7 +586,7 @@ class RadioBrowser(object):
                 ret = r.json() # ['body']
                 return ret
         except Exception as e:
-            logger.info('RadioBrowser API request for %s failed: %s' % (variant, e))
+            logger.info('RadioBrowser API request for %s failed: %s' % (uri, e))
         return {}
 
     # @cache()   # Can't be debugged

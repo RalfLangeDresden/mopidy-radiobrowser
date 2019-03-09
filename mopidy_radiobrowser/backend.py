@@ -102,10 +102,13 @@ class RadioBrowserLibrary(backend.LibraryProvider):
                     result.append(translator.station_to_ref(station))
             else:
                 logger.debug('RadioBrowser: Unknown URI: %s', uri)
-        elif variant == "location" and identifier:
-            for location in self.backend.radiobrowser.locations(identifier):
-                result.append(translator.section_to_ref(location, 'local'))
-            for station in self.backend.radiobrowser.stations(identifier):
+        elif variant == "tag" and identifier:
+            # for location in self.backend.radiobrowser.locations(identifier):
+            #     result.append(translator.section_to_ref(location, 'local'))
+            tag = self.backend.radiobrowser.getTag(identifier)
+            stations = self.backend.radiobrowser.stations(tag)
+            for station in stations:
+                self.backend.radiobrowser.addStation(station)
                 result.append(translator.station_to_ref(station))
         elif variant == "section" and identifier:
             if (self.backend.radiobrowser.related(identifier)):
