@@ -24,6 +24,7 @@ except ImportError:
 
 # Constants
 PREFIX_COUNTRY = 'country-'
+PREFIX_STATE = 'state-'
 PREFIX_LANGUAGE = 'language-'
 PREFIX_TAG = 'tag-'
 
@@ -312,7 +313,12 @@ class RadioBrowser(object):
     def addDirectory(self, directory):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addDirectory')
 
-        self._directories[directory['key']] = directory
+        directoryId = directory['key']
+        if directoryId in self._directories:
+            # The directory always exists
+            return True
+        
+        self._directories[directoryId] = directory
         
         return True
 
@@ -331,25 +337,27 @@ class RadioBrowser(object):
 
         return self._directories
 
-    def browseDirectory(self, key):
-        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.browseDirectory (key="' + key + '")')
+    def browseDirectory(self, directory):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.browseDirectory')
 
-        # Use the key to find the directory
-        for directory in self._directories:
-            if key == directory['name']:
-                url = directory['URL']
-                results = list(self._radiobrowser(url, ''))
-                return results
+        url = directory['URL']
+        results = list(self._radiobrowser(url, ''))
+        return results
 
         return results
 
     def addCountry(self, country):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addCountry')
 
+        if '0' == country['stationcount']:
+            return False
+
         # Add the url to browse the country
-        # http://www.radio-browser.info/webservice/json/stations/bycountry/<name>
-        country['URL'] = self._base_uri % ('stations/bycountry/' + country['name'])
-        country['key'] = PREFIX_COUNTRY + country['name']
+        # http://www.radio-browser.info/webservice/json/states/<country>
+        name = country['name'].strip()
+        country['URL'] = self._base_uri % ('states/' + name + '/')
+        # country['URL'] = self._base_uri % ('states')
+        country['key'] = PREFIX_COUNTRY + name.replace(" ", "")
 
         self.addDirectory(country)
         
@@ -360,16 +368,40 @@ class RadioBrowser(object):
 
         return self.getDirectory(PREFIX_COUNTRY + countryId)
 
+    def addState(self, state):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addState')
+
+        if '0' == state['stationcount']:
+            return False
+
+        # Add the url to browse the state
+        # http://www.radio-browser.info/webservice/json/stations/bystate/<name>
+        name = state['name'].strip()
+        state['URL'] = self._base_uri % ('stations/bystate/' + name)
+        state['key'] = PREFIX_STATE + name.replace(" ", "")
+
+        self.addDirectory(state)
+        
+        return True
+
+    def getState(self, stateId):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getState')
+
+        return self.getDirectory(PREFIX_STATE + stateId)
+
     def addLanguage(self, language):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addLanguage')
         
         if '-' == language['name']:
             return False
+        if '0' == language['stationcount']:
+            return False
 
         # Add the url to browse the language
         # http://www.radio-browser.info/webservice/json/stations/bylanguage/<name>
-        language['URL'] = self._base_uri % ('stations/bylanguage/' + language['name'])
-        language['key'] = PREFIX_LANGUAGE + language['name']
+        name = language['name'].strip()
+        language['URL'] = self._base_uri % ('stations/bylanguage/' + name)
+        language['key'] = PREFIX_LANGUAGE + name.replace(" ", "")
 
         self.addDirectory(language)
         
@@ -385,8 +417,9 @@ class RadioBrowser(object):
 
         # Add the url to browse the tag
         # http://www.radio-browser.info/webservice/json/stations/bytag/<name>
-        tag['URL'] = self._base_uri % ('stations/bytag/' + tag['name'])
-        tag['key'] = PREFIX_TAG + tag['name']
+        name = tag['name'].strip()
+        tag['URL'] = self._base_uri % ('stations/bytag/' + name)
+        tag['key'] = PREFIX_TAG + name.replace(" ", "")
 
         self.addDirectory(tag)
         

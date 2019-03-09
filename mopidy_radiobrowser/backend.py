@@ -119,6 +119,19 @@ class RadioBrowserLibrary(backend.LibraryProvider):
             for station in stations:
                 self.backend.radiobrowser.addStation(station)
                 result.append(translator.station_to_ref(station))
+        elif variant == "country" and identifier:
+            country = self.backend.radiobrowser.getCountry(identifier)
+            states = self.backend.radiobrowser.browseDirectory(country)
+            for state in states:
+                ret = self.backend.radiobrowser.addState(state)
+                if True == ret:
+                    result.append(translator.state_to_ref(state))
+        elif variant == "state" and identifier:
+            state = self.backend.radiobrowser.getState(identifier)
+            stations = self.backend.radiobrowser.stations(state)
+            for station in stations:
+                self.backend.radiobrowser.addStation(station)
+                result.append(translator.station_to_ref(station))
         elif variant == "section" and identifier:
             if (self.backend.radiobrowser.related(identifier)):
                 result.append(Ref.directory(uri='radiobrowser:related:%s' % identifier, name='Related'))
@@ -130,9 +143,6 @@ class RadioBrowserLibrary(backend.LibraryProvider):
                 result.append(translator.station_to_ref(station))
             for station in self.backend.radiobrowser.stations(identifier):
                 result.append(translator.station_to_ref(station))
-        elif variant == "shows" and identifier:
-            for show in self.backend.radiobrowser.shows(identifier):
-                result.append(translator.show_to_ref(show))
         elif variant == "episodes" and identifier:
             for episode in self.backend.radiobrowser.episodes(identifier):
                 result.append(translator.station_to_ref(episode))

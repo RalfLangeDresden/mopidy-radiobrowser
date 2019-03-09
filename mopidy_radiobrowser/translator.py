@@ -77,8 +77,8 @@ def show_to_ref(show):
 def category_to_ref(category):
     logger.debug('RadioBrowser: Start translator.category_to_ref')
 
-    uri = unparse_uri('category', category['key'])
-    ret = Ref.directory(uri=uri, name=category['text'])
+    uri = unparse_uri('category', category['key'].strip())
+    ret = Ref.directory(uri=uri, name=category['text'].strip())
     return ret
 
 
@@ -90,8 +90,8 @@ RadioBrowser country data structure:
 def country_to_ref(country):
     logger.debug('RadioBrowser: Start translator.country_to_ref')
 
-    countryName = country['name']
-    countryUri = unparse_uri('country', countryName)
+    countryName = country['name'].strip()
+    countryUri = unparse_uri('country', countryName.replace(" ", ""))
     ret = Ref.directory(uri=countryUri, name=countryName)
     return ret
 
@@ -105,8 +105,8 @@ RadioBrowser state data structure:
 def state_to_ref(state):
     logger.debug('RadioBrowser: Start translator.state_to_ref')
 
-    stateName = state['name']
-    stateUri = unparse_uri('state', stateName)
+    stateName = state['name'].strip()
+    stateUri = unparse_uri('state', stateName.replace(" ", ""))
     ret = Ref.directory(uri=stateUri, name=stateName)
     return ret
 
@@ -120,8 +120,8 @@ RadioBrowser tag data structure:
 def tag_to_ref(tag):
     logger.debug('RadioBrowser: Start translator.tag_to_ref')
 
-    tagName = tag['name']
-    tagUri = unparse_uri('tag', tagName)
+    tagName = tag['name'].strip()
+    tagUri = unparse_uri('tag', tagName.replace(" ", ""))
     ret = Ref.directory(uri=tagUri, name=tagName)
     return ret
 
@@ -135,8 +135,8 @@ RadioBrowser language data structure:
 def language_to_ref(language):
     logger.debug('RadioBrowser: Start translator.language_to_ref')
 
-    languageName = language['name']
-    languageUri = unparse_uri('language', languageName)
+    languageName = language['name'].strip()
+    languageUri = unparse_uri('language', languageName.replace(" ", ""))
     ret = Ref.directory(uri=languageUri, name=languageName)
     return ret
 
