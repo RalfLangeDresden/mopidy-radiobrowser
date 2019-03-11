@@ -22,9 +22,11 @@ RADIOBROWSER_ID_STREAM = 'stream'
 RADIOBROWSER_ID_UNKNOWN = 'unknown'
 
 
-def unparse_uri(variant, identifier):
+def unparse_uri(variant, name):
     logger.debug('RadioBrowser: Start translator.unparse_uri')
 
+    identifier = name.replace(" ", "")
+    identifier = identifier.replace(":", "")
     return b'radiobrowser:%s:%s' % (variant, identifier)
 
 
@@ -33,8 +35,13 @@ def parse_uri(uri):
     logger.debug('RadioBrowser: Start translator.parse_uri')
 
     result = re.findall(r'^radiobrowser:([a-z]+)(?::(\w+))?$', uri)
-    if result:
-        return result[0]
+    # if result:
+    #     return result[0]
+    newResult = uri.split(":")
+    if 3 == len(newResult):
+        return newResult[1], newResult[2]
+    if 2 == len(newResult):
+        return newResult[1], None 
     return None, None
 
 

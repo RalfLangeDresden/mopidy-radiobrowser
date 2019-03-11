@@ -132,20 +132,6 @@ class RadioBrowserLibrary(backend.LibraryProvider):
             for station in stations:
                 self.backend.radiobrowser.addStation(station)
                 result.append(translator.station_to_ref(station))
-        elif variant == "section" and identifier:
-            if (self.backend.radiobrowser.related(identifier)):
-                result.append(Ref.directory(uri='radiobrowser:related:%s' % identifier, name='Related'))
-            if (self.backend.radiobrowser.shows(identifier)):
-                result.append(Ref.directory(uri='radiobrowser:shows:%s' % identifier, name='Shows'))
-            for station in self.backend.radiobrowser.featured(identifier):
-                result.append(translator.section_to_ref(station))
-            for station in self.backend.radiobrowser.local(identifier):
-                result.append(translator.station_to_ref(station))
-            for station in self.backend.radiobrowser.stations(identifier):
-                result.append(translator.station_to_ref(station))
-        elif variant == "episodes" and identifier:
-            for episode in self.backend.radiobrowser.episodes(identifier):
-                result.append(translator.station_to_ref(episode))
         else:
             logger.debug('RadioBrowser: Unknown URI: %s', uri)
 
@@ -176,7 +162,9 @@ class RadioBrowserLibrary(backend.LibraryProvider):
             return
         radiobrowser_query = translator.mopidy_to_radiobrowser_query(query)
         tracks = []
-        for station in self.backend.radiobrowser.search(radiobrowser_query):
+        stations = self.backend.radiobrowser.search(radiobrowser_query)
+        for station in stations:
+            self.backend.radiobrowser.addStation(station)
             track = translator.station_to_track(station)
             tracks.append(track)
         return SearchResult(uri='radiobrowser:search', tracks=tracks)

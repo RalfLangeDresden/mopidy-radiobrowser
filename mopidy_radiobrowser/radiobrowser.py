@@ -249,7 +249,7 @@ class RadioBrowser(object):
 
         category = {
             # http://www.radio-browser.info/webservice/json/stations/topclick
-            'URL'    : self._base_uri % 'stations/topclick/10',
+            'URL'    : self._base_uri % 'stations/topclick/50',
             'uri'    : 'radiobrowser:category:click',
             'element': 'outline',
             'text'   : 'Top 50 clicked',
@@ -260,7 +260,7 @@ class RadioBrowser(object):
 
         category = {
             # http://www.radio-browser.info/webservice/json/stations/topvote
-            'URL'    : self._base_uri % 'stations/topvote/10',
+            'URL'    : self._base_uri % 'stations/topvote/50',
             'uri'    : 'radiobrowser:category:vote',
             'element': 'outline',
             'text'   : 'Top 50 voted',
@@ -342,9 +342,30 @@ class RadioBrowser(object):
 
         url = directory['URL']
         results = list(self._radiobrowser(url, ''))
-        return results
 
         return results
+
+    def addStation(self, station):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addStation')
+
+        stationId = station['id']
+        if stationId in self._stations:
+            # The station always exist
+            return True
+        
+        self._stations[stationId] = station
+        
+        return True
+
+    def getStation(self, stationId):
+        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getStation')
+
+        if stationId in self._stations:
+            station = self._stations[stationId]
+        else:
+            station = self._station_info(stationId)
+            self._stations['stationId'] = station
+        return station
 
     def addCountry(self, country):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addCountry')
@@ -357,7 +378,7 @@ class RadioBrowser(object):
         name = country['name'].strip()
         country['URL'] = self._base_uri % ('states/' + name + '/')
         # country['URL'] = self._base_uri % ('states')
-        country['key'] = PREFIX_COUNTRY + name.replace(" ", "")
+        country['key'] = PREFIX_COUNTRY + name.replace(' ', '')
 
         self.addDirectory(country)
         
@@ -376,9 +397,10 @@ class RadioBrowser(object):
 
         # Add the url to browse the state
         # http://www.radio-browser.info/webservice/json/stations/bystate/<name>
+        # http://www.radio-browser.info/webservice/json/stations/bystateexact/<name>
         name = state['name'].strip()
-        state['URL'] = self._base_uri % ('stations/bystate/' + name)
-        state['key'] = PREFIX_STATE + name.replace(" ", "")
+        state['URL'] = self._base_uri % ('stations/bystateexact/' + name)
+        state['key'] = PREFIX_STATE + name.replace(' ', '')
 
         self.addDirectory(state)
         
@@ -392,16 +414,15 @@ class RadioBrowser(object):
     def addLanguage(self, language):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addLanguage')
         
-        if '-' == language['name']:
-            return False
         if '0' == language['stationcount']:
             return False
 
         # Add the url to browse the language
         # http://www.radio-browser.info/webservice/json/stations/bylanguage/<name>
+        # http://www.radio-browser.info/webservice/json/stations/bylanguageexact/<name>
         name = language['name'].strip()
-        language['URL'] = self._base_uri % ('stations/bylanguage/' + name)
-        language['key'] = PREFIX_LANGUAGE + name.replace(" ", "")
+        language['URL'] = self._base_uri % ('stations/bylanguageexact/' + name)
+        language['key'] = PREFIX_LANGUAGE + name.replace(' ', '')
 
         self.addDirectory(language)
         
@@ -417,9 +438,11 @@ class RadioBrowser(object):
 
         # Add the url to browse the tag
         # http://www.radio-browser.info/webservice/json/stations/bytag/<name>
+        # http://www.radio-browser.info/webservice/json/stations/bytagexact/<name>
         name = tag['name'].strip()
-        tag['URL'] = self._base_uri % ('stations/bytag/' + name)
-        tag['key'] = PREFIX_TAG + name.replace(" ", "")
+        searchName = name.replace('#', '')
+        tag['URL'] = self._base_uri % ('stations/bytagexact/' + searchName)
+        tag['key'] = PREFIX_TAG + name.replace(' ', '')
 
         self.addDirectory(tag)
         
@@ -430,23 +453,6 @@ class RadioBrowser(object):
 
         directoryId = PREFIX_TAG + tagId
         return self.getDirectory(directoryId)
-
-    def addStation(self, station):
-        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addStation')
-
-        self._stations[station['id']] = station
-        
-        return True
-
-    def getStation(self, stationId):
-        logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.getStation')
-
-        if stationId in self._stations:
-            station = self._stations[stationId]
-        else:
-            station = self._station_info(stationId)
-            self._stations['stationId'] = station
-        return station
 
     ''' glaetten, abgleichen, abspecken, geraderichten
     def _flatten(self, data):
@@ -489,7 +495,6 @@ class RadioBrowser(object):
             else:
                 self._grab_item(item)
         return results
-    '''
 
     def locations(self, location):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.locations')
@@ -498,6 +503,7 @@ class RadioBrowser(object):
         results = self._radiobrowser('Browse.ashx', args)
         # TODO: Support filters here
         return [x for x in results if x.get('type', '') == 'link']
+    '''
 
     def _browse(self, tag):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._browse')
@@ -604,15 +610,10 @@ class RadioBrowser(object):
         if not query:
             logger.debug('RadioBrowser: Empty search query')
             return []
+        
         logger.debug('RadioBrowser: Searching RadioBrowser for "%s"' % query)
-        args = '&query=' + query
-        search_results = self._radiobrowser('Search.ashx', args)
-        results = []
-        for item in self._flatten(search_results):
-            if item.get('type', '') == 'audio':
-                # Only return stations
-                self._stations[item['guide_id']] = item
-                results.append(item)
+        url = self._base_uri % ('stations/byname/' + query)
+        results = list(self._radiobrowser(url, ''))
 
         return results
 
