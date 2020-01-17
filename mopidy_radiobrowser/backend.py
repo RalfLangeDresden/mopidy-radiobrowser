@@ -7,7 +7,7 @@ from mopidy import backend, exceptions, httpclient
 from mopidy.audio import scan
 # TODO: Something else, using internal APIs is not cool.
 from mopidy.internal import http, playlists
-from mopidy.models import Ref, SearchResult
+from mopidy.models import Ref, SearchResult, Image
 
 import pykka
 
@@ -168,6 +168,22 @@ class RadioBrowserLibrary(backend.LibraryProvider):
             track = translator.station_to_track(station)
             tracks.append(track)
         return SearchResult(uri='radiobrowser:search', tracks=tracks)
+    
+    def get_images(self, uris):
+        logger.debug('RadioBrowser: Start backend.RadioBrowserLibrary.get_images')
+
+        result = {}
+        for uri in uris:
+            variant, identifier = translator.parse_uri(uri)
+            if variant != 'station':
+                continue
+
+            station = self.backend.radiobrowser.getStation(identifier)
+            if not station:
+                continue
+            
+            result[uri] = [Image(uri=station.get('favicon'))]
+        return result
 
 
 class RadioBrowserPlayback(backend.PlaybackProvider):

@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
-import ConfigParser as configparser
+import configparser
 
 import logging
 import re
 import time
-import urlparse
+from urllib.parse import urlparse
 
 from collections import OrderedDict
 from contextlib import closing
@@ -13,10 +13,9 @@ from contextlib import closing
 import requests
 # from execnet.script.loop_socketserver import directory
 
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO as StringIO
+import io
+import socket
+
 try:
     import xml.etree.cElementTree as elementtree
 except ImportError:
@@ -104,7 +103,7 @@ def parse_pls(data):
     for section in cp.sections():
         if section.lower() != 'playlist':
             continue
-        for i in xrange(cp.getint(section, 'numberofentries')):
+        for i in range(cp.getint(section, 'numberofentries')):
             try:
                 # TODO: Remove this horrible hack to avoid adverts
                 if cp.has_option(section, 'length%d' % (i+1)):
@@ -206,8 +205,19 @@ class RadioBrowser(object):
 
     def __init__(self, timeout, session=None):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.__init__')
+        
+        hosts = []
+        ips = socket.getaddrinfo('all.api.radio-browser.info', 80, 0, 0, socket.IPPROTO_TCP)
+        for ip_tupel in ips:
+            ip = ip_tupel[4][0]
+            host_addr = socket.gethostbyaddr(ip)
+            if host_addr[0] not in hosts:
+                hosts.append(host_addr[0])
+                
+        hosts.sort()
 
-        self._base_uri = 'http://www.radio-browser.info/webservice/json/%s'
+        # old API: self._base_uri = 'http://www.radio-browser.info/webservice/json/%s'
+        self._base_uri = 'http://' + hosts[0] + '/json/%s'
         self._session = session or requests.Session()
         self._timeout = timeout / 1000.0
         self._categories = []  # <type 'list'>
@@ -215,7 +225,8 @@ class RadioBrowser(object):
         self._stations = {}
 
         category = {   # <type 'dict'>
-            # http://www.radio-browser.info/webservice/json/countries
+            # Countries
+            # _base_uri/countries
             'URL'    : self._base_uri % 'countries',
             'uri'    : 'radiobrowser:category:countries',
             'element': 'outline',
@@ -226,7 +237,8 @@ class RadioBrowser(object):
         self.addCategory(category);
 
         category = {
-            # http://www.radio-browser.info/webservice/json/languages
+            # Languages
+            # _base_uri/languages
             'URL': self._base_uri % 'languages',
             'uri'    : 'radiobrowser:category:languages',
             'element': 'outline',
@@ -237,7 +249,8 @@ class RadioBrowser(object):
         self.addCategory(category);
 
         category = {
-            # http://www.radio-browser.info/webservice/json/tags
+            # Tags
+            # _base_uri/tags
             'URL'    : self._base_uri % 'tags',
             'uri'    : 'radiobrowser:category:tags',
             'element': 'outline',
@@ -248,7 +261,8 @@ class RadioBrowser(object):
         self.addCategory(category);
 
         category = {
-            # http://www.radio-browser.info/webservice/json/stations/topclick
+            # Top 50 clicked
+            # _base_uri/stations/topclick
             'URL'    : self._base_uri % 'stations/topclick/50',
             'uri'    : 'radiobrowser:category:click',
             'element': 'outline',
@@ -259,7 +273,8 @@ class RadioBrowser(object):
         self.addCategory(category);
 
         category = {
-            # http://www.radio-browser.info/webservice/json/stations/topvote
+            # Top 50 voted
+            # _base_uri/stations/topvote
             'URL'    : self._base_uri % 'stations/topvote/50',
             'uri'    : 'radiobrowser:category:vote',
             'element': 'outline',
@@ -348,7 +363,7 @@ class RadioBrowser(object):
     def addStation(self, station):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.addStation')
 
-        stationId = station['id']
+        stationId = station['stationuuid']
         if stationId in self._stations:
             # The station always exist
             return True
@@ -571,7 +586,7 @@ class RadioBrowser(object):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser.parse_stream_url')
 
         logger.debug('RadioBrowser: Extracting URIs from %s', url)
-        extension = urlparse.urlparse(url).path[-4:]
+        extension = urlparse(url).path[-4:]
         if extension in ['.mp3', '.wma']:
             return [url]  # Catch these easy ones
         results = []
@@ -579,7 +594,7 @@ class RadioBrowser(object):
         if playlist:
             parser = find_playlist_parser(extension, content_type)
             if parser:
-                playlist_data = StringIO.StringIO(playlist)
+                playlist_data = io.StringIO(playlist)
                 try:
                     results = [u for u in parser(playlist_data)
                                if u and u != url]

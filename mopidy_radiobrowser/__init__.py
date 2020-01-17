@@ -1,27 +1,51 @@
-from __future__ import unicode_literals
+import logging
+import pathlib
 
-import os
+import pkg_resources
 
 from mopidy import config, ext
 
-__version__ = '0.1.0'
+__version__ = pkg_resources.get_distribution("Mopidy-RadioBrowser").version
+
+# TODO: If you need to log, use loggers named after the current Python module
+logger = logging.getLogger(__name__)
 
 
 class Extension(ext.Extension):
 
-    dist_name = 'Mopidy-RadioBrowser'
-    ext_name = 'radiobrowser'
+    dist_name = "Mopidy-RadioBrowser"
+    ext_name = "radiobrowser"
     version = __version__
 
     def get_default_config(self):
-        conf_file = os.path.join(os.path.dirname(__file__), 'ext.conf')
-        return config.read(conf_file)
+        return config.read(pathlib.Path(__file__).parent / "ext.conf")
 
     def get_config_schema(self):
-        schema = super(Extension, self).get_config_schema()
+        schema = super().get_config_schema()
+        # TODO: Comment in and edit, or remove entirely
+        #schema["username"] = config.String()
+        #schema["password"] = config.Secret()
         schema['timeout'] = config.Integer(minimum=0)
+
         return schema
 
     def setup(self, registry):
+        # You will typically only implement one of the following things
+        # in a single extension.
+
+        # TODO: Edit or remove entirely
+        # from .frontend import RadioBrowserFrontend
+        # registry.add("frontend", RadioBrowserFrontend)
+
+        # TODO: Edit or remove entirely
         from .backend import RadioBrowserBackend
-        registry.add('backend', RadioBrowserBackend)
+        registry.add("backend", RadioBrowserBackend)
+
+        # TODO: Edit or remove entirely
+        # registry.add(
+        #     "http:static",
+        #     {
+        #         "name": self.ext_name,
+        #         "path": str(pathlib.Path(__file__) / "static"),
+        #     },
+        # )

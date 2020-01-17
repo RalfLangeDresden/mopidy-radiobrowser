@@ -27,7 +27,8 @@ def unparse_uri(variant, name):
 
     identifier = name.replace(" ", "")
     identifier = identifier.replace(":", "")
-    return b'radiobrowser:%s:%s' % (variant, identifier)
+    unparsed = 'radiobrowser:%s:%s' % (variant, identifier) 
+    return unparsed
 
 
 # Parse the uri to ???
@@ -48,7 +49,7 @@ def parse_uri(uri):
 def station_to_ref(station):
     logger.debug('RadioBrowser: Start translator.station_to_ref')
 
-    id = station.get('id', '??')
+    id = station.get('stationuuid', '??')
     uri = unparse_uri('station', id)
     name = station.get('name', station.get('url', '??'))
     # TODO: Should the name include 'now playing' for all stations?
@@ -61,9 +62,7 @@ def station_to_track(station):
     logger.debug('RadioBrowser: Start translator.station_to_track')
 
     ref = station_to_ref(station)
-    stationAlbum = Album(name=ref.name,
-                         uri=ref.uri,
-                         images=[station.get('favicon')])
+    stationAlbum = Album(name=ref.name, uri=ref.uri)
     stationArtists = [Artist(name=ref.name, uri=ref.uri)]
     stationName = station.get('name', ref.name)
     track = Track(uri=ref.uri, name=stationName, album=stationAlbum, artists=stationArtists)
