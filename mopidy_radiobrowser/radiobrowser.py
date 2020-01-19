@@ -414,8 +414,12 @@ class RadioBrowser(object):
         # http://www.radio-browser.info/webservice/json/stations/bystate/<name>
         # http://www.radio-browser.info/webservice/json/stations/bystateexact/<name>
         name = state['name'].strip()
-        state['URL'] = self._base_uri % ('stations/bystateexact/' + name)
-        state['key'] = PREFIX_STATE + name.replace(' ', '')
+        identifier = name.replace(' ', '')
+        if (name == state['country']):
+            state['URL'] = self._base_uri % ('stations/bycountryexact/' + name)
+        else:
+            state['URL'] = self._base_uri % ('stations/bystateexact/' + name)
+        state['key'] = PREFIX_STATE + identifier
 
         self.addDirectory(state)
         

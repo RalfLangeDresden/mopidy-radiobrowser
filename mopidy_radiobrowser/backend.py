@@ -122,6 +122,12 @@ class RadioBrowserLibrary(backend.LibraryProvider):
         elif variant == "country" and identifier:
             country = self.backend.radiobrowser.getCountry(identifier)
             states = self.backend.radiobrowser.browseDirectory(country)
+            emptyState = {
+                'name': country['name'],
+                'country': country['name'],
+                'stationcount' : 1
+                }
+            states.append(emptyState)
             for state in states:
                 ret = self.backend.radiobrowser.addState(state)
                 if True == ret:
@@ -130,6 +136,9 @@ class RadioBrowserLibrary(backend.LibraryProvider):
             state = self.backend.radiobrowser.getState(identifier)
             stations = self.backend.radiobrowser.stations(state)
             for station in stations:
+                if (state['name'] == state['country']):
+                    if ('' == station['state']):
+                        continue
                 self.backend.radiobrowser.addStation(station)
                 result.append(translator.station_to_ref(station))
         else:
