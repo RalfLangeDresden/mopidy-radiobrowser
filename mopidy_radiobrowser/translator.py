@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import logging
-import re
 import urllib
 
 from mopidy.models import Album, Artist, Ref, Track
@@ -35,22 +34,19 @@ def unparse_uri(variant, name):
 def parse_uri(uri):
     logger.debug('RadioBrowser: Start translator.parse_uri')
 
-    result = re.findall(r'^radiobrowser:([a-z]+)(?::(\w+))?$', uri)
-    # if result:
-    #     return result[0]
-    newResult = uri.split(":")
-    if 3 == len(newResult):
-        return newResult[1], newResult[2]
-    if 2 == len(newResult):
-        return newResult[1], None 
+    result = uri.split(":")
+    if 3 == len(result):
+        return result[1], result[2]
+    if 2 == len(result):
+        return result[1], None 
     return None, None
 
 
 def station_to_ref(station):
     logger.debug('RadioBrowser: Start translator.station_to_ref')
 
-    id = station.get('stationuuid', '??')
-    uri = unparse_uri('station', id)
+    stationUuid = station.get('stationuuid', '??')
+    uri = unparse_uri('station', stationUuid)
     name = station.get('name', station.get('url', '??'))
     # TODO: Should the name include 'now playing' for all stations?
     # if get_id_type(id) == RADIOBROWSER_ID_TOPIC:
@@ -180,11 +176,11 @@ def mopidy_to_radiobrowser_query(mopidy_query):
     logger.debug('RadioBrowser: Start translator.mopidy_to_radiobrowser_query')
 
     radiobrowser_query = []
-    for (field, values) in mopidy_query.iteritems():
+    for (field, values) in mopidy_query.items():
         if not hasattr(values, '__iter__'):
             values = [values]
         for value in values:
             if field == 'any':
                 radiobrowser_query.append(value)
     query = ' '.join(radiobrowser_query).encode(RADIOBROWSER_API_ENCODING)
-    return urllib.pathname2url(query)
+    return urllib.request.pathname2url(query)

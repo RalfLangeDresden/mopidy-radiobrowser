@@ -118,7 +118,7 @@ def parse_pls(data):
 def fix_asf_uri(uri):
     logger.debug('RadioBrowser: Start radiobrowser.fix_asf_uri')
 
-    return re.sub(r'http://(.+\?mswmext=\.asf)', r'mms://\1', uri, flags=re.I)
+    return re.sub(r'http://(.+\?mswmext=\.asf)', r'mms://\1', uri, flags=re.IGNORECASE)
 
 
 def parse_old_asx(data):
@@ -143,7 +143,7 @@ def parse_new_asx(data):
 
     # Copied from mopidy.audio.playlists
     try:
-        for event, element in elementtree.iterparse(data):
+        for element in elementtree.iterparse(data):
             element.tag = element.tag.lower()  # normalize
     except elementtree.ParseError:
         return

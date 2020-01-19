@@ -191,7 +191,7 @@ class RadioBrowserPlayback(backend.PlaybackProvider):
     def translate_uri(self, uri):
         logger.debug('RadioBrowser: Start backend.RadioBrowserPlayback.translate_uri')
 
-        variant, identifier = translator.parse_uri(uri)
+        identifier = translator.parse_uri(uri)
         station = self.backend.radiobrowser.getStation(identifier)
         if not station:
             return None
