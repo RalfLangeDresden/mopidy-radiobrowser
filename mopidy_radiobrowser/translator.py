@@ -109,7 +109,11 @@ def state_to_ref(state):
 
     stateName = state['name'].strip()
     stateUri = unparse_uri('state', stateName.replace(" ", ""))
-    ret = Ref.directory(uri=stateUri, name=stateName)
+    if (state['name'] == state['country']):
+        referenzName = 'No state'
+    else:
+        referenzName = stateName
+    ret = Ref.directory(uri=stateUri, name=referenzName)
     return ret
 
 
