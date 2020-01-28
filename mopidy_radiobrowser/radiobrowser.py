@@ -5,6 +5,7 @@ import configparser
 import logging
 import re
 import time
+import pycountry
 from urllib.parse import urlparse
 
 from collections import OrderedDict
@@ -227,7 +228,7 @@ class RadioBrowser(object):
         category = {   # <type 'dict'>
             # Countries
             # _base_uri/countries
-            'URL'    : self._base_uri % 'countries',
+            'URL'    : self._base_uri % 'countrycodes',
             'uri'    : 'radiobrowser:category:countries',
             'element': 'outline',
             'key'    : 'countries',
@@ -390,10 +391,34 @@ class RadioBrowser(object):
 
         # Add the url to browse the country
         # http://www.radio-browser.info/webservice/json/states/<country>
-        name = country['name'].strip()
-        country['URL'] = self._base_uri % ('states/' + name + '/')
+        alpha2 = country['name'].strip()
+        # add some informations from pycountry
+        try:
+            isoCountry = pycountry.countries.get(alpha_2=alpha2)
+            if isoCountry:
+                country['a2'] = isoCountry.alpha_2
+                country['a3'] = isoCountry.alpha_3
+                country['name'] = isoCountry.name
+                if hasattr(isoCountry, 'official_name'):
+                    country['official'] = isoCountry.official_name
+                else:
+                    country['official'] = isoCountry.name
+            else:
+                country['a2'] = alpha2
+                country['a3'] = '??'
+                country['name'] = alpha2
+                country['official'] = alpha2
+
+        except LookupError:
+            # Problem: no standard country name
+            country['a2'] = alpha2
+            country['a3'] = '??'
+            country['name'] = alpha2
+            country['official'] = alpha2
+            
+        country['URL'] = self._base_uri % ('states/' + country['name'] + '/')
         # country['URL'] = self._base_uri % ('states')
-        country['key'] = PREFIX_COUNTRY + name.replace(' ', '')
+        country['key'] = PREFIX_COUNTRY + alpha2
 
         self.addDirectory(country)
         
@@ -415,8 +440,8 @@ class RadioBrowser(object):
         # http://www.radio-browser.info/webservice/json/stations/bystateexact/<name>
         name = state['name'].strip()
         identifier = name.replace(' ', '')
-        if (name == state['country']):
-            state['URL'] = self._base_uri % ('stations/bycountryexact/' + name)
+        if len(name) == 2 and name == state['country']:
+            state['URL'] = self._base_uri % ('stations/bycountrycodeexact/' + name)
         else:
             state['URL'] = self._base_uri % ('stations/bystateexact/' + name)
         state['key'] = PREFIX_STATE + identifier

@@ -123,8 +123,8 @@ class RadioBrowserLibrary(backend.LibraryProvider):
             country = self.backend.radiobrowser.getCountry(identifier)
             states = self.backend.radiobrowser.browseDirectory(country)
             emptyState = {
-                'name': country['name'],
-                'country': country['name'],
+                'name': country['a2'],
+                'country': country['a2'],
                 'stationcount' : 1
                 }
             states.append(emptyState)

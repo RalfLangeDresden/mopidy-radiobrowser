@@ -2,10 +2,16 @@ from __future__ import unicode_literals
 
 import logging
 import urllib
+import pycountry
+import gettext
+import locale
 
 from mopidy.models import Album, Artist, Ref, Track
 
+actualLocale = locale.getlocale()
 logger = logging.getLogger(__name__)
+localLanguage = gettext.translation('iso3166', pycountry.LOCALES_DIR, languages=[actualLocale[0]])
+localLanguage.install()
 
 RADIOBROWSER_API_ENCODING = 'utf-8'
 
@@ -91,9 +97,9 @@ RadioBrowser country data structure:
 '''
 def country_to_ref(country):
     logger.debug('RadioBrowser: Start translator.country_to_ref')
-
-    countryName = country['name'].strip()
-    countryUri = unparse_uri('country', countryName.replace(" ", ""))
+    
+    countryName = _(country['name'])
+    countryUri = unparse_uri('country', country['a2'])
     ret = Ref.directory(uri=countryUri, name=countryName)
     return ret
 
@@ -110,7 +116,7 @@ def state_to_ref(state):
     stateName = state['name'].strip()
     stateUri = unparse_uri('state', stateName.replace(" ", ""))
     if (state['name'] == state['country']):
-        referenzName = 'No state'
+        referenzName = 'Whole country'
     else:
         referenzName = stateName
     ret = Ref.directory(uri=stateUri, name=referenzName)
