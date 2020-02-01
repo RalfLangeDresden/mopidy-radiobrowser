@@ -1,20 +1,15 @@
 from __future__ import unicode_literals
 
 import logging
-import time
-
-from mopidy import backend, exceptions, httpclient
+from mopidy import backend, httpclient
 from mopidy.audio import scan
 # TODO: Something else, using internal APIs is not cool.
-from mopidy.internal import http, playlists
 from mopidy.models import Ref, SearchResult, Image
-
 import pykka
-
 import requests
-
 import mopidy_radiobrowser
 from mopidy_radiobrowser import translator, radiobrowser
+
 
 logger = logging.getLogger(__name__)
 
@@ -201,94 +196,17 @@ class RadioBrowserPlayback(backend.PlaybackProvider):
         logger.debug('RadioBrowser: Start backend.RadioBrowserPlayback.translate_uri')
 
         identifier = translator.parse_uri(uri)
-        station = self.backend.radiobrowser.getStation(identifier)
+        if identifier[0] == 'station':
+            station = self.backend.radiobrowser.getStation(identifier[1])
+        else:
+            station = self.backend.radiobrowser.getStation(identifier[0])
         if not station:
             return None
         stream_uris = self.backend.radiobrowser.tune(station)
         while stream_uris:
             uri = stream_uris.pop(0)
             logger.debug('RadioBrowser: Looking up URI: %s.' % uri)
-            new_uri = self.unwrap_stream(uri)
-            if new_uri:
-                return new_uri
-            else:
-                logger.debug('RadioBrowser: Mopidy translate_uri failed.')
-                new_uris = self.backend.radiobrowser.parse_stream_url(uri)
-                if new_uris == [uri]:
-                    logger.debug('Last attempt, play stream anyway: %s.' % uri)
-                    return uri
-                stream_uris.extend(new_uris)
+            if uri:
+                return uri
         logger.debug('RadioBrowser: RadioBrowser lookup failed.')
         return None
-
-    def unwrap_stream(self, uri):
-        logger.debug('RadioBrowser: Start backend.RadioBrowserPlayback.unwrap_stream')
-
-        unwrapped_uri, _ = _unwrap_stream(
-            uri,
-            timeout=self.backend._timeout,
-            scanner=self.backend._scanner,
-            requests_session=self.backend._session)
-        return unwrapped_uri
-
-
-# Shamelessly taken from mopidy.stream.actor
-def _unwrap_stream(uri, timeout, scanner, requests_session):
-    logger.debug('RadioBrowser: Start backend._unwrap_stream')
-
-    """
-    Get a stream URI from a playlist URI, ``uri``.
-
-    Unwraps nested playlists until something that's not a playlist is found or
-    the ``timeout`` is reached.
-    """
-
-    original_uri = uri
-    seen_uris = set()
-    deadline = time.time() + timeout
-
-    while time.time() < deadline:
-        if uri in seen_uris:
-            logger.info('Unwrapping stream from URI (%s) failed: playlist referenced itself', uri)
-            return None, None
-        else:
-            seen_uris.add(uri)
-
-        logger.debug('RadioBrowser: Unwrapping stream from URI: %s', uri)
-
-        try:
-            scan_timeout = deadline - time.time()
-            if scan_timeout < 0:
-                logger.info('Unwrapping stream from URI (%s) failed: timed out in %sms', uri, timeout)
-                return None, None
-            scan_result = scanner.scan(uri, timeout=scan_timeout)
-        except exceptions.ScannerError as exc:
-            logger.debug('RadioBrowser: GStreamer failed scanning URI (%s): %s', uri, exc)
-            scan_result = None
-
-        if scan_result is not None:
-            if scan_result.playable or (
-                not scan_result.mime.startswith('text/') and
-                not scan_result.mime.startswith('application/')
-            ):
-                logger.debug('Unwrapped potential %s stream: %s', scan_result.mime, uri)
-                return uri, scan_result
-
-        download_timeout = deadline - time.time()
-        if download_timeout < 0:
-            logger.info('Unwrapping stream from URI (%s) failed: timed out in %sms', uri, timeout)
-            return None, None
-        content = http.download(requests_session, uri, timeout=download_timeout / 1000)
-
-        if content is None:
-            logger.info('Unwrapping stream from URI (%s) failed: error downloading URI %s', original_uri, uri)
-            return None, None
-
-        uris = playlists.parse(content)
-        if not uris:
-            logger.debug('Failed parsing URI (%s) as playlist; found potential stream.', uri)
-            return uri, None
-
-        # TODO Test streams and return first that seems to be playable
-        logger.debug('Parsed playlist (%s) and found new URI: %s', uri, uris[0])
-        uri = uris[0]

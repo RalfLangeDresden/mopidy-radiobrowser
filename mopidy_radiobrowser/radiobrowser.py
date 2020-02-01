@@ -1,32 +1,24 @@
 from __future__ import unicode_literals
 
 import configparser
-
 import logging
 import re
 import time
 import pycountry
 from urllib.parse import urlparse
-
 from collections import OrderedDict
 from contextlib import closing
-
 import requests
-# from execnet.script.loop_socketserver import directory
-
 import io
 import socket
-
-try:
-    import xml.etree.cElementTree as elementtree
-except ImportError:
-    import xml.etree.ElementTree as elementtree
+import xml.etree.ElementTree as elementtree
 
 # Constants
 PREFIX_COUNTRY = 'country-'
 PREFIX_STATE = 'state-'
 PREFIX_LANGUAGE = 'language-'
 PREFIX_TAG = 'tag-'
+
 
 logger = logging.getLogger(__name__)
 
@@ -605,8 +597,8 @@ class RadioBrowser(object):
         logger.debug('RadioBrowser: Start radiobrowser.RadioBrowser._station_info')
 
         logger.debug('RadioBrowser: Fetching info for station %s' % stationId)
-        args = '&c=composite&detail=listing&id=' + stationId
-        results = self._radiobrowser('Describe.ashx', args)
+        uri = self._base_uri % ('stations/byuuid/' + stationId)
+        results = self._radiobrowser(uri, '')
         listings = self._filter_results(results, 'Listing', self._map_listing)
         if listings:
             return listings[0]
