@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import logging
 from mopidy import backend, httpclient
 from mopidy.audio import scan
-# TODO: Something else, using internal APIs is not cool.
 from mopidy.models import Ref, SearchResult, Image
 import pykka
 import requests
