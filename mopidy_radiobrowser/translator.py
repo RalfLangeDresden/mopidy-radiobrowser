@@ -91,6 +91,34 @@ def category_to_ref(category):
     return ret
 
 
+def country_add_name(country):
+    alpha2 = country['name'].strip()
+    # add some informations from pycountry
+    try:
+        isoCountry = pycountry.countries.get(alpha_2=alpha2)
+        if isoCountry:
+            country['a2'] = isoCountry.alpha_2
+            country['a3'] = isoCountry.alpha_3
+            country['name'] = isoCountry.name
+            country['translated_name'] = _(country['name'])
+            if hasattr(isoCountry, 'official_name'):
+                country['official'] = isoCountry.official_name
+            else:
+                country['official'] = isoCountry.name
+        else:
+            country['a2'] = alpha2
+            country['a3'] = '??'
+            country['name'] = alpha2
+            country['translated_name'] = alpha2
+            country['official'] = alpha2
+
+    except LookupError:
+        # Problem: no standard country name
+        country['a2'] = alpha2
+        country['a3'] = '??'
+        country['name'] = alpha2
+        country['official'] = alpha2
+
 '''
 RadioBrowser country data structure:
  * 'value' - Name of the country
@@ -99,7 +127,7 @@ RadioBrowser country data structure:
 def country_to_ref(country):
     logger.debug('RadioBrowser: Start translator.country_to_ref')
     
-    countryName = _(country['name'])
+    countryName = country['translated_name']
     countryUri = unparse_uri('country', country['a2'])
     ret = Ref.directory(uri=countryUri, name=countryName)
     return ret

@@ -1,13 +1,9 @@
 from __future__ import unicode_literals
 
 import logging
-from mopidy import backend, httpclient
-from mopidy.audio import scan
+from mopidy import backend
 from mopidy.models import Ref, SearchResult, Image
-import pykka
-import requests
-import mopidy_radiobrowser
-from mopidy_radiobrowser import translator, radiobrowser
+from mopidy_radiobrowser import translator
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +31,8 @@ class RadioBrowserLibrary(backend.LibraryProvider):
             if "countries" == identifier:
                 countries = self.backend.radiobrowser.browseCategory(identifier)
                 for country in countries:
+                    translator.country_add_name(country)
+                for country in sorted(countries, key = lambda i: i['translated_name']):
                     ret = self.backend.radiobrowser.addCountry(country)
                     if True == ret:
                         result.append(translator.country_to_ref(country))
